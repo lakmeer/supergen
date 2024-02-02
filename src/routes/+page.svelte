@@ -104,5 +104,5 @@
     <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}  min={0.1} max={60}  step={0.1} class="accent-slate-300" />
   </div>
 
-  <p class="col-span-12 text-center">Click anywhre to start sound</p>
+  <p class="col-span-12 text-center">Click anywhere to start sound</p>
 {/if}
