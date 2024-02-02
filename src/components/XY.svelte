@@ -13,8 +13,8 @@
 <div class="text-center w-32 {$$restProps.class}">
 
   <div class="flex justify-center">
-    <input class="block mx-auto" type="range" orient="vertical" bind:value={value[0]} {min} {max} {step} {disabled} />
-    <input class="block mx-auto" type="range" orient="vertical" bind:value={value[1]} {min} {max} {step} {disabled} />
+    <input class="block mx-auto" type="range" bind:value={value[0]} {min} {max} {step} {disabled} />
+    <input class="block mx-auto" type="range" bind:value={value[1]} {min} {max} {step} {disabled} />
   </div>
 
   <span class="flex gap-4 justify-center">
@@ -29,3 +29,11 @@
   {/if}
 </div>
 
+
+<style>
+  input {
+    writing-mode: bt-lr;
+    appearance: slider-vertical;
+    width: 1rem;
+  }
+</style>

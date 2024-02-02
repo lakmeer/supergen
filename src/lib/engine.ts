@@ -1,128 +1,109 @@
 
-import { browser } from '$app/environment'
+import Osc from '$lib/Osc'
 
-const C_SHARP = [ 17.32, 34.65, 69.30, 138.59, 277.18 ]
 
-const smoothSet = (param:AudioParam, target:number, gap = 0.1) => {
-  param.linearRampToValueAtTime(target, audioCtx.currentTime + gap)
-}
+//
+// Binaural Explorer Engine
+//
 
-const addOver = (label:string, f:FreqXform, a:number, k = 1) => {
+export default class Engine {
 
-  const over = audioCtx.createOscillator()
-  over.frequency.value = f(baseFreq)
-  over.start()
+  ctx:    AudioContext
+  output: GainNode
 
-  const pan = audioCtx.createStereoPanner()
-  pan.pan.value = 0
-  over.connect(pan)
+  sep:    number
+  rate:   number
 
-  if (k !== 0) {
-    const lfo = audioCtx.createOscillator()
-    lfo.type = 'sine'
-    lfo.frequency.value = 1/k
-    lfo.start()
-
-    const lfoGain = audioCtx.createGain()
-    lfoGain.gain.value = 0.8
-    lfo.connect(lfoGain)
-    lfoGain.connect(pan.pan)
+  oscs: {
+    all: Osc[],
+    sub: Osc[],
+    a:   Osc[],
+    b:   Osc[],
   }
 
-  const gain = audioCtx.createGain()
-  gain.gain.value = 0.5 * a
-  gain.connect(globalGain)
-  pan.connect(gain)
+  #freq: number
 
-  const self = {
-    xform: f,
-    freq: over.frequency,
-    gain: gain.gain,
-    pan:  pan.pan,
+  constructor (level: number, preset: Preset) {
+
+    const ctx = new AudioContext()
+
+    this.output = ctx.createGain()
+    this.output.gain.value = level
+    this.output.connect(ctx.destination)
+
+    this.ctx   = ctx
+
+    const { freq, sep, rate } = preset
+
+    this.sep   = sep
+    this.rate  = rate
+    this.#freq = freq
+
+    this.oscs = {}
+
+    this.oscs.sub =  [
+      new Osc(ctx, this.output, freq, (f => f/8), 0, 1/(rate/1.3)),
+      new Osc(ctx, this.output, freq, (f => f/4), 0, 1/(rate/1.2)),
+      new Osc(ctx, this.output, freq, (f => f/2), 0, 1/(rate/1.1)),
+    ]
+
+    this.oscs.a = [
+      new Osc(ctx, this.output, freq, (f => f + sep * 0),  0, 1/(rate - 0)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 1),  0, 1/(rate - 1)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 3),  0, 1/(rate - 2)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 4),  0, 1/(rate - 3)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 6),  0, 1/(rate - 4)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 8),  0, 1/(rate - 5)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 12), 0, 1/(rate - 6)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 16), 0, 1/(rate - 7)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 24), 0, 1/(rate - 8)),
+      new Osc(ctx, this.output, freq, (f => f + sep * 32), 0, 1/(rate - 9)),
+    ]
+
+    this.oscs.b = [
+    ]
+
+    this.oscs.all = this.oscs.sub.concat(this.oscs.a).concat(this.oscs.b)
+
+    this.apply(preset)
   }
 
-  const slider = addSlider(label, a, v => smoothSet(gain.gain, v))
+  apply (preset: Preset) {
+    const { freq, sep, rate, tones } = preset
 
-  overs[label] = self
-  return self
-}
+    this.sep   = sep
+    this.rate  = rate
+    this.#freq = freq
 
-let baseFreq = C_SHARP[3]
-const loopTime = 23 // seconds
-
-let seperation = 1
-
-const overs = {}
-
-
-const PRESET_TEST = {
-  freq: C_SHARP[3],
-  base: [ 0.25, 0.45, 0.65, 0.77 ],
-  over: [ 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
-}
-
-const PRESET_SUPERGEN = {
-  freq: C_SHARP[3],
-  base: [ 0, 0, 0, 0.77 ],
-  over: [ 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
-}
-
-const PRESET_TOWEL = {
-  freq: C_SHARP[2],
-  base: [ 0.8, 0.8, 0.8, 0.8 ],
-  over: [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-}
-
-const preset = PRESET_SUPERGEN
-
-
-let audioCtx
-let globalGain
-
-let Engine = { value: 2 }
-
-export default Engine
-
-
-if (browser) {
-  console.log(audioCtx, AudioContext)
-  audioCtx = new AudioContext()
-  console.log(audioCtx, AudioContext)
-
-  globalGain = audioCtx.createGain()
-  globalGain.gain.value = 0.9
-  globalGain.connect(audioCtx.destination)
-
-
-  const setBaseFreq = (freq:number) => {
-    baseFreq = freq 
-
-    for (const over of Object.values(overs)) {
-      over.freq.value = over.xform(baseFreq)
+    for (const i in this.oscs.all) {
+      const osc = this.oscs.all[i]
+      osc.base = freq
+      osc.level = tones[i]
     }
   }
 
-  addOver('sssub', f => f/8, preset.base[0], loopTime/7)
-  addOver('ssub',  f => f/4, preset.base[1], loopTime/5)
-  addOver('sub',   f => f/2, preset.base[2], loopTime/3)
-  addOver('base',  f => f,   preset.base[3], loopTime)
+  get base () {
+    return this.#freq
+  }
 
-  addOver('+1',  f => f + seperation * 1,  preset.over[0], loopTime - 1)
-  addOver('+3',  f => f + seperation * 3,  preset.over[1], loopTime - 2)
-  addOver('+4',  f => f + seperation * 4,  preset.over[2], loopTime - 3)
-  addOver('+6',  f => f + seperation * 6,  preset.over[3], loopTime - 4)
-  addOver('+8',  f => f + seperation * 8,  preset.over[4], loopTime - 5)
-  addOver('+12', f => f + seperation * 12, preset.over[5], loopTime - 6)
-  addOver('+16', f => f + seperation * 16, preset.over[6], loopTime - 7)
-  addOver('+24', f => f + seperation * 24, preset.over[7], loopTime - 8)
-  addOver('+32', f => f + seperation * 32, preset.over[8], loopTime - 9)
+  set base (freq: number) {
+    this.#freq = freq
 
-  addSlider('master', globalGain.gain.value, v => smoothSet(globalGain.gain, v))
-  addSlider('sep', 1, (v) => {
-    seperation = v
-    setBaseFreq(baseFreq)
-  }, 0.1, 10, 0.01)
+    for (const osc of this.oscs.all) {
+      osc.base = freq
+    }
+  }
 
-  addSlider('core freq', baseFreq, v => setBaseFreq(v), C_SHARP[0], C_SHARP[4], 0.1)
+  get level () {
+    return this.output.gain.value
+  }
 
+  set level (level: number) {
+    this.output.gain.linearRampToValueAtTime(level, this.ctx.currentTime + 0.1)
+  }
+
+  destroy () {
+    this.ctx.close()
+  }
 }
+

@@ -9,13 +9,16 @@ declare global {
 	}
 
 
-  // My Types
+  // Domain
 
   type FreqXform = (f:number) => number
 
-
-
-
+  type Preset = {
+    freq: number
+    rate: number
+    sep: number
+    tones: number[]
+  }
 
 }
 
