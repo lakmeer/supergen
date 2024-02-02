@@ -14,7 +14,7 @@
 
 
 <div class="text-center w-12 {$$restProps.class}">
-  <input class="block mx-auto" type="range" bind:value {min} {max} {step} {disabled} />
+  <input class="block mx-auto" orient="vertical" type="range" bind:value {min} {max} {step} {disabled} />
 
   {#if showValue}
     <span class="block">
@@ -47,5 +47,6 @@
     writing-mode: bt-lr;
     appearance: slider-vertical;
     width: 1rem;
+    max-height: 8rem;
   }
 </style>
