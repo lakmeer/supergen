@@ -24,7 +24,7 @@
     tones: [ 0.25, 0.45, 0.65, 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
   }
 
-  let rafref
+  let rafref:number
   let engine:Engine
 
   onMount(() => {

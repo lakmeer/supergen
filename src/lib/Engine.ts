@@ -39,7 +39,7 @@ export default class Engine {
     this.rate  = rate
     this.#freq = freq
 
-    this.oscs = {}
+    this.oscs = {} as Engine['oscs']
 
     this.oscs.sub =  [
       new Osc(ctx, this.output, freq, (f => f/8), 0, 1/(rate/1.3)),

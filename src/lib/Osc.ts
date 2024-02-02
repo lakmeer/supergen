@@ -13,6 +13,9 @@ export default class Osc {
 
   fx: FreqXform
 
+  ana: AnalyserNode
+  peek: Float32Array
+
   constructor (ctx:AudioContext, out:AudioNode, base:number, fx:FreqXform, amp:number, k:number) {
 
     const osc = ctx.createOscillator()
