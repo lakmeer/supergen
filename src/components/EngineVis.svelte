@@ -119,7 +119,7 @@
     ctx.globalAlpha = 1.0
     ctx.lineWidth = CANVAS_DPI
 
-    ctx.font = '30px sans-serif'
+    ctx.font = '2vw sans-serif'
     ctx.textAlign = 'center'
 
     ctx.clearRect(0, 0, w, h)
@@ -188,7 +188,7 @@
     bind:this={canvas} bind:clientWidth={width} bind:clientHeight={height} />
 
   <button
-    class="absolute bottom-2 right-2 py-1 px-3 cursor-pointer bg-slate-900 border border-slate-600 text-slate-300 rounded"
+    class="absolute text-xs xl:text-base bottom-2 right-2 py-1 px-2 cursor-pointer bg-slate-900 border border-slate-600 text-slate-300 rounded"
     on:click={() => MODE = MODE === 'log' ? 'linear' : 'log'}
     type="button">
     { MODE }
