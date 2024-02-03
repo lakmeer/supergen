@@ -104,8 +104,13 @@
 
 <svelte:document on:keydown={suspendOnSpace} on:click={resumeOnClick} />
 
-
 {#if engine}
+  {#if engine.ctx.state === 'suspended'}
+    <p class="col-span-12 text-center">Click anywhere to start sound</p>
+  {:else}
+    <p class="col-span-12 text-center">Spacebar to shut it up</p>
+  {/if}
+
   <div class="grid grid-cols-subgrid col-span-2 p-8 border border-slate-600">
     <div class="col-span-2 flex flex-col items-center">
       <span class="text-4xl mb-8 text-green-500 font-bold">A</span>
@@ -147,5 +152,8 @@
     <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1}    class="accent-slate-300" />
   </div>
 
-  <p class="col-span-12 text-center">Click anywhere to start sound</p>
+{:else}
+
+  <p class="text-4xl col-span-12 text-center">Initialising</p>
+
 {/if}
