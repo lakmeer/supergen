@@ -29,9 +29,9 @@ export default class Engine {
   ctx: AudioContext
   out: GainNode
 
-  base:   number            // Base frequency
-  rate:   number            // Base panning rate
-  stride: number            // Stride width
+  #rate:number              // Base panning rate
+  #freq:number              // Base frequency
+  #stride:number            // Stride width
 
   subs: Osc[]               // Suboscillators
   oscs: Osc[]               // Tone oscillators
@@ -43,11 +43,6 @@ export default class Engine {
   distLevel:number          // Seed used to create WaveShaper profile
   crunchCurve:Float32Array  // WaveShaper profile
 
-  // Computed properties
-  //
-  // level:  number  - Sets output volume
-  // freq:   number  - Sets base frequency, updates all oscillators
-  // stride: number  - Sets stride curve, updates all oscillators
 
   constructor (level: number, preset?: Preset) {
 
@@ -61,9 +56,9 @@ export default class Engine {
     this.ctx = ctx
 
     // Set default values
-    this.base   = 110
-    this.rate   = 20
-    this.stride = 1
+    this.#freq   = 110
+    this.#rate   = 20
+    this.#stride = 1
     this.curve  = PLUS_ONE
 
     // Oscillator banks
@@ -91,22 +86,22 @@ export default class Engine {
   }
 
 
-  get freq () {
-    return this.base
-  }
-
-  set freq (freq: number) {
-    this.base = freq
-    for (const ix in this.subs) { this.setSub(+ix) }
-    for (const ix in this.oscs) { this.setOsc(+ix) }
-  }
-
   get level () {
     return this.out.gain.value
   }
 
   set level (level: number) {
     this.out.gain.linearRampToValueAtTime(level, this.ctx.currentTime + 0.1)
+  }
+
+  get freq () {
+    return this.#freq
+  }
+
+  set freq (freq: number) {
+    this.#freq = freq
+    for (const ix in this.subs) { this.setSub(+ix) }
+    for (const ix in this.oscs) { this.setOsc(+ix) }
   }
 
   get dist () {
@@ -118,12 +113,31 @@ export default class Engine {
     this.setCrunchCurve(this.distLevel)
   }
 
-  apply (preset: Preset) {
+  get stride () {
+    return this.#stride
+  }
+
+  set stride (stride: number) {
+    this.#stride = stride
+    for (const ix in this.subs) { this.setSub(+ix) }
+    for (const ix in this.oscs) { this.setOsc(+ix) }
+  }
+
+  get rate () {
+    return this.#rate
+  }
+
+  set rate (rate:number) {
+    this.#rate = rate
+  }
+
+
+  apply (preset:Preset) {
     const { freq, rate, curve, stride, subs, oscs } = preset
 
-    this.base   = freq
-    this.rate   = rate
-    this.stride = stride
+    this.#freq   = freq
+    this.#rate   = rate
+    this.#stride = stride
     this.curve  = curve
 
     console.log('Engine::apply - applying preset', preset)
@@ -144,11 +158,11 @@ export default class Engine {
   }
 
   setSub (ix:number) {
-    this.subs[ix].set(LOW_OCTAVE(this.stride, this.base, this.subs.length - ix), this.rate/(pow(ix+1, 2)))
+    this.subs[ix].set(LOW_OCTAVE(this.#stride, this.#freq, this.subs.length - ix), this.rate/(pow(ix+1, 2)))
   }
 
   setOsc (ix:number, curve = this.curve) {
-    this.oscs[ix].set(curve(this.stride, this.base, ix), 1/(this.rate+ix))
+    this.oscs[ix].set(curve(this.#stride, this.#freq, ix), 1/(this.#rate+ix))
   }
 
   update (t: number, Δt: number):Engine {
