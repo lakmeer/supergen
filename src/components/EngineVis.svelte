@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { lerp, unlerp, exp, max, min, norm } from '$lib/utils'
+  import { lerp, unlerp, pow, log, max, min, norm, abs, clamp } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
   import Engine from '$lib/Engine'
 
   const CANVAS_DPI = 2
   const DRAW_GRID  = true
-  const CURVE_RES  = 10
+  const GRID_DIVS  = 40
+  const CURVE_RES  = 500
 
   const MIN_FREQ = 30/2/2/2 // Lowest 3rd sub-octave of 30Hz
   const MAX_FREQ = 2100     // Highest pitch at max base and stride
@@ -17,6 +18,8 @@
   const BLUE  = fromTw('blue-500')
   const SLATE = fromTw('slate-700')
   const WHITE = fromTw('white')
+
+  let MODE : 'log' | 'linear' = 'log'
 
   type Range = [ number, number ]
 
@@ -33,45 +36,77 @@
   let width:number
   let height:number
 
-  let peek:number
+
+  // Helpers
+
+  const hz = (f:number) => `${f.toFixed(2)} Hz`
+
+  const D = log(MAX_FREQ/MIN_FREQ)
+
+  const logScale   = (f:number) => MODE === 'linear'
+    ? unlerp(MIN_FREQ, MAX_FREQ, f)
+    : log(f/MIN_FREQ) / D
+
+  const unlogScale = (x:number) => MODE === 'linear'
+    ? lerp(MIN_FREQ, MAX_FREQ, x)
+    : MIN_FREQ * pow(10, x * D)
 
 
-  // Draw
-
-  const log = Math.log10
-
-  function logScale (f:number):number {
-    //return (log(f) - log(MIN_FREQ)) / (log(MAX_FREQ) - log(MIN_FREQ))
-    return unlerp(MIN_FREQ, MAX_FREQ, f)
-  }
+  // Drawing
 
   function logNormalCurve (dist:EqDist, color:string, range:Range, w:number, h:number) {
-    ctx.lineWidth = 3 * CANVAS_DPI
+    ctx.lineWidth = 2 * CANVAS_DPI
     ctx.strokeStyle = color
-    ctx.fillStyle = color
-
-    let freqRange = range[1] - range[0]
-    let startX    = logScale(range[0]) * w
-    let endX      = logScale(range[1]) * w
 
     ctx.beginPath()
-    ctx.moveTo(startX, h)
+    ctx.moveTo(0, h)
 
     for (let i = 0; i <= CURVE_RES; i += 1) {
       let p = i/CURVE_RES
-      let x = logScale(lerp(range[0], range[1], p)) * w
-      let y = h - norm(p, dist) * h
-      ctx.lineTo(x, y)
-      ctx.fillRect(x, y, CANVAS_DPI, CANVAS_DPI)
+      let x = w * p
+
+      let v1 = unlerp(logScale(range[0]), logScale(range[1]), p) // slightly wrong
+      //let v2 = unlerp(range[0], range[1], unlogScale(p))  // ???
+      //let crop = unlogScale(p) > range[0] && unlogScale(p) < range[1] ? 1 : 0
+      let y = norm(v1, dist)
+
+      ctx.lineTo(x, h - y * h)
     }
 
-    ctx.lineTo(endX, h)
-    ctx.closePath()
+    ctx.fillStyle = color
 
-    ctx.globalAlpha = 0.2
+    ctx.lineTo(w, h)
+    ctx.closePath()
+    ctx.globalAlpha = 0.4
     ctx.stroke()
+
     ctx.globalAlpha = 0.1
     ctx.fill()
+  }
+
+  function grid (w:number, h:number, showLabels = true) {
+    ctx.strokeStyle = SLATE
+    ctx.fillStyle = '#fff9'
+
+    const step = w / GRID_DIVS
+
+    ctx.beginPath()
+    for (let y = 0; y <= h; y += step) {
+      ctx.moveTo(0, y)
+      ctx.lineTo(w, y)
+    }
+    ctx.closePath()
+    ctx.stroke()
+
+    ctx.beginPath()
+    for (let i = 0; i <= GRID_DIVS; i += 1) {
+      const x = i * step
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, h)
+      if (showLabels && (i % 2 === 1)) ctx.fillText(unlogScale(i / GRID_DIVS).toFixed(0), x, step/2)
+    }
+    ctx.closePath()
+    ctx.stroke()
   }
 
   function draw (engine:Engine) {
@@ -84,25 +119,14 @@
     ctx.globalAlpha = 1.0
     ctx.lineWidth = CANVAS_DPI
 
+    ctx.font = '30px sans-serif'
+    ctx.textAlign = 'center'
+
     ctx.clearRect(0, 0, w, h)
 
     // Grid
     if (DRAW_GRID) {
-      ctx.strokeStyle = SLATE
-      ctx.beginPath()
-      for (let f = MIN_FREQ; f <= MAX_FREQ; f *= 1.14) {
-        const x = logScale(f) * w
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, h)
-      }
-
-      for (let l = 0; l <= 1; l += 0.1) {
-        const y = lerp(h, 0, l)
-        ctx.moveTo(0, y)
-        ctx.lineTo(w, y)
-      }
-      ctx.closePath()
-      ctx.stroke()
+      grid(w, h)
     }
 
     let subRange:Range = [ MAX_FREQ, 0 ]
@@ -127,6 +151,7 @@
       oscRange[1] = max(oscRange[1], osc.freq)
       ctx.fillStyle = +ix === 0 ? WHITE : +ix % 2 ? RED : GREEN
       ctx.fillRect(x - bar/2, y, bar, h - y)
+      if (ix === '0') ctx.fillText(hz(osc.freq), x, y - 10)
     }
 
     // Curves
@@ -135,14 +160,12 @@
     logNormalCurve(engine.params.odds,  RED,   oscRange, w, h)
 
     // Limits
-    ctx.globalAlpha = 0.3
+    ctx.globalAlpha = 0.4
     ctx.fillStyle = 'black'
     let minX = logScale(min(subRange[0], oscRange[0])) * w
     let maxX = logScale(max(subRange[1], oscRange[1])) * w
     ctx.fillRect(0, 0, minX - bar * 2, h)
     ctx.fillRect(maxX + bar * 2, 0, w - maxX - bar, h)
-
-    peek = subRange[0]
   }
 
 
@@ -160,6 +183,15 @@
 
 </script>
 
-<canvas class="w-full aspect-[4] xl:aspect-[5] bg-slate-950"
-  bind:this={canvas} bind:clientWidth={width} bind:clientHeight={height} />
+<div class="relative">
+  <canvas class="w-full aspect-[4] xl:aspect-[5] bg-slate-950"
+    bind:this={canvas} bind:clientWidth={width} bind:clientHeight={height} />
+
+  <button
+    class="absolute bottom-2 right-2 py-1 px-3 cursor-pointer bg-slate-900 border border-slate-600 text-slate-300 rounded"
+    on:click={() => MODE = MODE === 'log' ? 'linear' : 'log'}
+    type="button">
+    { MODE }
+  </button>
+</div>
 

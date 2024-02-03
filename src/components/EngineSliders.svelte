@@ -54,7 +54,7 @@
   }
 
   function draw (engine:Engine) {
-    if (!ctx) return console.warn('EngineVis - no context')
+    if (!ctx) return console.warn('EngineSliders - no context')
 
     const w = width  * CANVAS_DPI
     const h = height * CANVAS_DPI
@@ -62,9 +62,12 @@
     ctx.clearRect(0, 0, w, h)
     ctx.globalAlpha = 0.2
 
-    normalCurve(engine.params.subs,  BLUE,  [0, 2], w, h)
-    normalCurve(engine.params.evens, GREEN, [3,14], w, h)
-    normalCurve(engine.params.odds,  RED,   [3,14], w, h)
+    const numSubs = engine.subs.length
+    const total = engine.total - 1
+
+    normalCurve(engine.params.subs,  BLUE,  [0, numSubs - 1], w, h)
+    normalCurve(engine.params.evens, GREEN, [numSubs, total], w, h)
+    normalCurve(engine.params.odds,  RED,   [numSubs, total], w, h)
   }
 
 

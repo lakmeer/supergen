@@ -4,6 +4,8 @@
 const  { abs, pow, exp, sqrt, floor, round, cos, sin, hypot, atan2, min, max, PI } = Math
 export { abs, pow, exp, sqrt, floor, round, cos, sin, hypot, atan2, min, max, PI }
 export const TAU = PI * 2
+export const log = Math.log10
+export const ln  = Math.log
 
 export const lerp   = (a:number, b:number, t:number) => a + (b - a) * t
 export const unlerp = (a:number, b:number, t:number) => (t - a) / (b - a)
@@ -18,3 +20,4 @@ export const normalCurve = (x:number, f:number, g:number, q:number) =>
 export const norm = (x:number, dist:EqDist) =>
   normalCurve(x, dist.f, dist.a, dist.q)
 
+export const closeEnough = (a:number, b:number, e = 2.1) => abs(a - b) < e

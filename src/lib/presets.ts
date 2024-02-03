@@ -73,6 +73,17 @@ export const TEST_MAXXED:ParametricPreset = {
   odds:  { f: 0.9, a: 0.9, q: 0.3 }
 }
 
+export const TEST_SPREAD:ParametricPreset = {
+  name: "Spread Test",
+  freq: C_SHARP[1],
+  rate: 2,
+  stride: 3,
+  curve: DEFAULT_STRIDE_CURVE,
+  crunch: 0.1,
+  subs:  { f: 0.5, a: 0.8, q: 0.5 },
+  evens: { f: 0.1, a: 0.7, q: 0.2 },
+  odds:  { f: 0.9, a: 0.9, q: 0.3 }
+}
 
 export const SUPERGEN_PARAM:ParametricPreset = {
   name: "Matt's Supergen",

@@ -71,7 +71,8 @@ export default class Engine {
     }
 
     // Oscillator banks
-    this.subs = [ new Osc(ctx), new Osc(ctx), new Osc(ctx), ]
+    this.subs = [ new Osc(ctx), new Osc(ctx), new Osc(ctx) ]
+
     this.oscs = [
       new Osc(ctx), new Osc(ctx), new Osc(ctx), new Osc(ctx),
       new Osc(ctx), new Osc(ctx), new Osc(ctx), new Osc(ctx),
@@ -179,7 +180,7 @@ export default class Engine {
   }
 
 
-  // Static Constructors
+  // Manual Constructor
 
   static fromManualPreset (ctx:AudioContext, level:number, preset:ManualPreset) {
     const engine = new Engine(ctx, level)
@@ -188,12 +189,13 @@ export default class Engine {
   }
 
   applyManual (preset:ManualPreset) {
-    const { name, freq, rate, curve, stride, subs, oscs } = preset
+    const { name, freq, rate, curve, inverse, stride, subs, oscs } = preset
 
     this.#freq   = freq
     this.#rate   = rate
     this.#stride = stride
-    this.curve  = curve
+    this.curve   = curve
+    this.uncurve = inverse
 
     console.log('Engine::apply - applying manual preset', name, preset)
 
@@ -211,6 +213,9 @@ export default class Engine {
 
     this.preset = name
   }
+
+
+  // Parametric Mode
 
   static fromParametricPreset (ctx:AudioContext, level:number, preset:ParametricPreset) {
     const engine = new Engine(ctx, level)

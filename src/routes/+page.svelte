@@ -17,7 +17,7 @@
   // Config
 
   const TIME_FACTOR = 1
-  let DISPLAY_MODE : 'sliders' | 'spectrum' = 'sliders'
+  let DISPLAY_MODE : 'sliders' | 'spectrum' = 'spectrum'
 
 
   // Functions
@@ -94,7 +94,9 @@
     </div>
   {:else}
     <Panel class="col-span-full pb-4 xl:pb-8 overflow-hidden">
-      <EngineSliders {engine} showLabels />
+      <div class="xl:pb-2">
+        <EngineSliders {engine} showLabels />
+      </div>
     </Panel>
   {/if}
 
