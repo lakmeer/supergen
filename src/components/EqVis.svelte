@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { exp, TAU } from '$lib/utils'
+  import { normalCurve, TAU } from '$lib/utils'
 
   const DRAW_RES = 1/50
   const CANVAS_DPI = 2
@@ -14,10 +14,6 @@
 
   // Functions
 
-  function normalCurve (x:number, f:number, g:number, q:number): number {
-    return g * exp(-((x - f) ** 2) / (2 * q ** 2))
-  }
-
   function draw (dist:EqDist) {
     if (!ctx) return console.warn("EqVis::draw - no context")
 
@@ -29,10 +25,10 @@
     ctx.lineWidth = 1 * CANVAS_DPI
     ctx.strokeStyle = 'white'
     ctx.beginPath()
-    ctx.moveTo(dist.freq * w, 0)
-    ctx.lineTo(dist.freq * w, h)
-    ctx.moveTo(0, (1 - dist.gain) * h)
-    ctx.lineTo(w, (1 - dist.gain) * h)
+    ctx.moveTo(dist.f * w, 0)
+    ctx.lineTo(dist.f * w, h)
+    ctx.moveTo(0, (1 - dist.a) * h)
+    ctx.lineTo(w, (1 - dist.a) * h)
     ctx.stroke()
 
     // Curve
@@ -40,9 +36,9 @@
     ctx.lineWidth = 3 * CANVAS_DPI
     ctx.strokeStyle = color
     ctx.beginPath()
-    ctx.moveTo(0, (1 - normalCurve(0, dist.freq, dist.gain, dist.q)) * h)
+    ctx.moveTo(0, (1 - normalCurve(0, dist.f, dist.a, dist.q)) * h)
     for (let i = 0; i <= w; i += w * DRAW_RES) {
-      ctx.lineTo(i, (1 - normalCurve(i / w, dist.freq, dist.gain, dist.q)) * h)
+      ctx.lineTo(i, (1 - normalCurve(i / w, dist.f, dist.a, dist.q)) * h)
     }
     ctx.stroke()
 
@@ -50,7 +46,7 @@
     ctx.lineWidth = 1 * CANVAS_DPI
     ctx.strokeStyle = 'white'
     ctx.beginPath()
-    ctx.arc(dist.freq * w, (1 - dist.gain) * h, w/20, 0, TAU)
+    ctx.arc(dist.f * w, (1 - dist.a) * h, w/20, 0, TAU)
     ctx.stroke()
   }
 

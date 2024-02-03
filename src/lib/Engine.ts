@@ -1,5 +1,5 @@
 
-import { abs, pow, PI } from '$lib/utils'
+import { abs, pow, norm, PI } from '$lib/utils'
 
 import Osc from '$lib/Osc'
 
@@ -36,9 +36,11 @@ export default class Engine {
   subs: Osc[]               // Suboscillators
   oscs: Osc[]               // Tone oscillators
 
-  distS: EqDist             // Suboscillator distribution
-  distA: EqDist             // Oscillator bank A distribution
-  distB: EqDist             // Oscillator bank B distribution
+  params: {
+    subs:  EqDist             // Suboscillator distribution
+    evens: EqDist             // Oscillator bank A distribution
+    odds:  EqDist             // Oscillator bank B distribution
+  }
 
   curve: StrideCurve        // Calculates frequency for each osc from base, index and stride
   preset?: ManualPreset     // Saved copy of the preset object
@@ -62,9 +64,11 @@ export default class Engine {
     this.#stride = 1
     this.curve   = PLUS_ONE
 
-    this.distS = { f: 0, a: 0, q: 0 }
-    this.distA = { f: 0, a: 0, q: 0 }
-    this.distB = { f: 0, a: 0, q: 0 }
+    this.params = {
+      subs:  { f: 0, a: 0, q: 0 },
+      evens: { f: 0, a: 0, q: 0 },
+      odds:  { f: 0, a: 0, q: 0 },
+    }
 
     // Oscillator banks
     this.subs = [ new Osc(ctx), new Osc(ctx), new Osc(ctx), ]
@@ -201,6 +205,45 @@ export default class Engine {
       const osc = this.oscs[+ix]
       osc.level = oscs[+ix]
       this.setOsc(+ix, curve)
+    }
+
+    this.preset = preset
+  }
+
+  static fromParametricPreset (ctx:AudioContext, level:number, preset:ParametricPreset) {
+    const engine = new Engine(ctx, level)
+    engine.applyParametric(preset)
+    return engine
+  }
+
+  applyParametric (preset:ParametricPreset) {
+    const { freq, rate, curve, stride, crunch, subs, evens, odds } = preset
+
+    console.log('Engine::apply - applying parametric preset', preset)
+
+    this.#freq   = freq
+    this.#rate   = rate
+    this.#stride = stride
+    this.curve   = curve
+
+    this.params.subs  = structuredClone(subs)
+    this.params.evens = structuredClone(evens)
+    this.params.odds  = structuredClone(odds)
+
+    this.dist = crunch // updates curve automatically
+
+    for (const ix in this.subs) {
+      const p = ix / (this.subs.length - 1)
+      const sub = this.subs[+ix]
+      this.setSub(+ix)
+      sub.level = norm(p, subs)
+    }
+
+    for (const ix in this.oscs) {
+      const p = ix / (this.oscs.length - 1)
+      const osc = this.oscs[+ix]
+      this.setOsc(+ix, curve)
+      osc.level = norm(p, ix % 2 ? odds : evens)
     }
 
     this.preset = preset

@@ -3,66 +3,21 @@
   import { round, pow } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
+  import { PRESET_SUPERGEN, PRESET_TEST_PARAM } from '$lib/presets'
+
   import Panel  from '../components/Panel.svelte'
   import Slider from '../components/Slider.svelte'
   import Panner from '../components/Panner.svelte'
   import Xy     from '../components/XY.svelte'
   import EqVis  from '../components/EqVis.svelte'
+  import Eq     from '../components/Eq.svelte'
 
   import Engine from '$lib/Engine'
 
 
   // Config
 
-  const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, ix) => {
-    const x = ix * w
-    return f + 0.0573*(x*x*x) - 0.3228*(x*x) + 1.8576*x - 0.162
-  }
-
   const TIME_FACTOR = 1
-  const C_SHARP = [ 17.32, 34.65, 69.30, 138.59, 277.18 ]
-
-
-  // Presets
-
-  const PRESET_TEST:ManualPreset = {
-    freq: C_SHARP[3],
-    rate: 23,
-    stride: 1,
-    curve: DEFAULT_STRIDE_CURVE,
-    subs: [ 0, 0, 0 ],
-    oscs: [ 0.77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
-  }
-
-  const PRESET_SUPERGEN:ManualPreset = {
-    freq: C_SHARP[3],
-    rate: 23,
-    stride: 1,
-    curve: DEFAULT_STRIDE_CURVE,
-    subs: [ 0.25, 0.45, 0.65 ],
-    //subs: [ 0, 0, 0 ],
-    oscs: [ 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00, 0, 0, ],
-  }
-
-  const PRESET_SUB_ONLY:ManualPreset = {
-    freq: C_SHARP[3],
-    rate: 2,
-    stride: 1,
-    curve: DEFAULT_STRIDE_CURVE,
-    subs: [ 0.25, 0.45, 0.65 ],
-    oscs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
-  }
-
-  const PRESET_TEST_PARAM:ParametricPreset = {
-    freq: C_SHARP[3],
-    rate: 2,
-    stride: 1,
-    curve: DEFAULT_STRIDE_CURVE,
-    crunch: 1,
-    distS: { freq: 1.0, gain: 1.0, q: 0.5 },
-    distA: { freq: 0.5, gain: 0.7, q: 0.2 },
-    distB: { freq: 0.5, gain: 0.3, q: 0.2 }
-  }
 
 
   // Functions
@@ -74,6 +29,7 @@
     then = now
     if (engine.ctx.state !== 'suspended') {
       engine = engine.update(time, Δt) // poke
+      anotherEngine = anotherEngine.update(time, Δt) // poke
     }
     rafref = requestAnimationFrame(poke)
   }
@@ -99,13 +55,16 @@
   let then:number
   let rafref:number
 
+  let anotherEngine:Engine
+
 
   // Init
 
   onMount(() => {
     const ctx = new AudioContext()
 
-    engine = Engine.fromManualPreset(ctx, 0.6, PRESET_SUPERGEN)
+    anotherEngine = Engine.fromManualPreset(ctx, 0.6, PRESET_SUPERGEN)
+    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET_TEST_PARAM)
 
     time = 0
     then = performance.now()
@@ -117,25 +76,6 @@
       cancelAnimationFrame(rafref)
     }
   })
-
-  let distS:EqDist = {
-    freq: 1.0,
-    gain: 1.0,
-    q: 0.5,
-  }
-
-  let distA:EqDist = {
-    freq: 0.5,
-    gain: 0.7,
-    q: 0.2,
-  }
-
-  let distB:EqDist = {
-    freq: 0.5,
-    gain: 0.3,
-    q: 0.2,
-  }
-
 </script>
 
 
@@ -148,63 +88,59 @@
     <p class="col-span-12 text-center">Spacebar to shut it up</p>
   {/if}
 
-  <div class="border rounded col-span-12 p-4 border-slate-600">
-    <div class="flex justify-between w-full">
-      {#each engine.subs as osc, ix}
-        <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
-          <Panner value={osc.pan} class="bg-blue-500" />
-          <p class="font-bold text-center mt-2">1/{pow(2, engine.subs.length - ix)}</p>
-        </Slider>
-      {/each}
+  <Panel horz label="Parametric" class="col-span-12">
+    {#each engine.subs as osc, ix}
+      <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
+        <Panner value={osc.pan} class="bg-blue-500" />
+        <p class="font-bold text-center mt-2">1/{pow(2, engine.subs.length - ix)}</p>
+      </Slider>
+    {/each}
 
-      {#each engine.oscs as osc, ix}
-        {@const color = ix % 2 ? 'red-400' : 'green-500'}
-        <Slider display="percent" bind:value={osc.level} class="accent-{color}">
-          <Panner value={osc.pan} class="bg-{color}" />
-          <p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p>
-        </Slider>
-      {/each}
-    </div>
-  </div>
+    {#each engine.oscs as osc, ix}
+      {@const color = ix % 2 ? 'red-400' : 'green-500'}
+      <Slider display="percent" bind:value={osc.level} class="accent-{color}">
+        <Panner value={osc.pan} class="bg-{color}" />
+        <p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p>
+      </Slider>
+    {/each}
+  </Panel>
+
+  <Panel horz label="Manual" class="col-span-12">
+    {#each anotherEngine.subs as osc, ix}
+      <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
+        <Panner value={osc.pan} class="bg-blue-500" />
+        <p class="font-bold text-center mt-2">1/{pow(2, anotherEngine.subs.length - ix)}</p>
+      </Slider>
+    {/each}
+
+    {#each anotherEngine.oscs as osc, ix}
+      {@const color = ix % 2 ? 'red-400' : 'green-500'}
+      <Slider display="percent" bind:value={osc.level} class="accent-{color}">
+        <Panner value={osc.pan} class="bg-{color}" />
+        <p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(anotherEngine.curve(anotherEngine.stride, 1, ix) - 1) } </p>
+      </Slider>
+    {/each}
+  </Panel>
 
 
   <!-- Parametric Controls -->
 
-  <Panel vert label="SUB" color="text-blue-500" class="col-span-2">
-    <Xy label="Parametric Curve"
-      bind:x={distS.freq}
-      bind:y={distS.gain}
-      bind:z={distS.q} minZ={0.01} maxZ={10}>
-      <EqVis dist={distS} color={fromTw('blue-500')} class="w-full aspect-square" />
-    </Xy>
-    <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+  <Panel vert label="Subs" color="text-blue-500" class="col-span-2">
+    <Eq bind:value={engine.params.subs} color={fromTw('blue-500')} />
   </Panel>
 
-  <Panel vert label="A" color="text-green-500" class="col-span-2">
-    <Xy label="Parametric Curve"
-      bind:x={distA.freq}
-      bind:y={distA.gain}
-      bind:z={distA.q} minZ={0.01} maxZ={10}>
-      <EqVis dist={distA} color={fromTw('green-500')} class="w-full aspect-square" />
-    </Xy>
-    <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+  <Panel vert label="Evens" color="text-green-500" class="col-span-2">
+    <Eq bind:value={engine.params.evens} color={fromTw('green-500')} />
   </Panel>
 
-  <Panel vert label="B" color="text-red-400" class="col-span-2">
-    <Xy label="Parametric Curve"
-      bind:x={distB.freq}
-      bind:y={distB.gain}
-      bind:z={distB.q} minZ={0.01} maxZ={10}>
-      <EqVis dist={distB} color={fromTw('red-400')} class="w-full aspect-square" />
-    </Xy>
-
-    <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+  <Panel vert label="Odds" color="text-red-400" class="col-span-2">
+    <Eq bind:value={engine.params.odds} color={fromTw('red-400')} />
   </Panel>
 
 
   <!-- Master Panel -->
 
-  <Panel horz label="Master" color="text-slate-400" class="col-span-6">
+  <Panel horz label="Master" color="text-slate-300" class="col-span-6">
     <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
     <Slider label="Base Freq"    display="basic"   showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
     <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
