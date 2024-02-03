@@ -117,16 +117,16 @@
     <div class="flex justify-between w-full">
       {#each engine.subs as osc, ix}
         <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
-          <p class="text-center mb-2">1/{pow(2, engine.subs.length - ix)}</p>
           <Panner value={osc.pan} class="bg-blue-500" />
+          <p class="font-bold text-center mt-2">1/{pow(2, engine.subs.length - ix)}</p>
         </Slider>
       {/each}
 
       {#each engine.oscs as osc, ix}
         {@const color = ix % 2 ? 'red-400' : 'green-500'}
         <Slider display="percent" bind:value={osc.level} class="accent-{color}">
-          <p class="text-center mb-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p>
           <Panner value={osc.pan} class="bg-{color}" />
+          <p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p>
         </Slider>
       {/each}
     </div>
