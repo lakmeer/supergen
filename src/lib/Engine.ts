@@ -132,6 +132,10 @@ export default class Engine {
     this.#rate = rate
   }
 
+  get total () {
+    return this.subs.length + this.oscs.length
+  }
+
 
   apply (preset:Preset) {
     const { freq, rate, curve, stride, subs, oscs } = preset

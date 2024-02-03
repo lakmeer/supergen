@@ -8,7 +8,7 @@ const { floor, random } = Math
 const randomFrom = <T>(xs:T[]):T => xs[floor(random() * xs.length)]
 
 import resolveConfig from "tailwindcss/resolveConfig";
-import tailwindConfig from "../tailwind.config.js";
+import tailwindConfig from "../tw-config.js";
 const theme = resolveConfig(tailwindConfig)?.theme
 
 export const fromTw = (tag:string):string => {
@@ -28,7 +28,6 @@ export const fromTw = (tag:string):string => {
 const excludedKeys = [
   'fore',
   'back',
-  'motat',
   'transparent',
   'current',
   'inherit',

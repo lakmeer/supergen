@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { round, pow } from '$lib/utils'
+  import { fromTw } from '$lib/tw-utils'
 
   import Slider from '../components/Slider.svelte'
   import Panner from '../components/Panner.svelte'
   import Xy     from '../components/XY.svelte'
+  import EqVis  from '../components/EqVis.svelte'
 
   import Engine from '$lib/Engine'
 
@@ -58,7 +60,9 @@
     const Δt = (now - then)/1000
     time += Δt * TIME_FACTOR
     then = now
-    engine = engine.update(time, Δt) // poke
+    if (engine.ctx.state !== 'suspended') {
+      engine = engine.update(time, Δt) // poke
+    }
     rafref = requestAnimationFrame(poke)
   }
 
@@ -99,6 +103,25 @@
       cancelAnimationFrame(rafref)
     }
   })
+
+  let distS:EqDist = {
+    freq: 1.0,
+    gain: 1.0,
+    q: 0.5,
+  }
+
+  let distA:EqDist = {
+    freq: 0.5,
+    gain: 0.7,
+    q: 0.2,
+  }
+
+  let distB:EqDist = {
+    freq: 0.5,
+    gain: 0.3,
+    q: 0.2,
+  }
+
 </script>
 
 
@@ -111,14 +134,7 @@
     <p class="col-span-12 text-center">Spacebar to shut it up</p>
   {/if}
 
-  <div class="grid grid-cols-subgrid col-span-2 p-8 border border-slate-600">
-    <div class="col-span-2 flex flex-col items-center">
-      <span class="text-4xl mb-8 text-green-500 font-bold">A</span>
-      <Xy class="accent-green-500" label="Distribution" value={[0, 0]} />
-    </div>
-  </div>
-
-  <div class="border col-span-8 p-4 flex items-center border-slate-600">
+  <div class="border rounded col-span-12 p-4 border-slate-600">
     <div class="flex justify-between w-full">
       {#each engine.subs as osc, ix}
         <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
@@ -137,23 +153,65 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-subgrid col-span-2 p-8 border border-slate-600">
-    <div class="col-span-2 flex flex-col items-center">
-      <span class="text-4xl mb-8 text-red-500 font-bold">B</span>
-      <Xy class="accent-red-400" label="Distribution" value={[0, 0]} />
+
+  <!-- Parametric Controls -->
+
+  <div class="grid col-span-2 p-8 border rounded border-slate-600">
+    <div class="flex flex-col items-center">
+      <span class="text-3xl mb-6 text-blue-500 font-bold">SUB</span>
+      <Xy label="Parametric Curve"
+        bind:x={distS.freq}
+        bind:y={distS.gain}
+        bind:z={distS.q} minZ={0.01} maxZ={10}>
+        <EqVis dist={distS} color={fromTw('blue-500')} class="w-full aspect-square" />
+      </Xy>
+      <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
     </div>
   </div>
 
-  <div class="flex col-span-12 space-x-4 border p-8 justify-center border-slate-600">
-    <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400 mr-8" />
-    <Slider label="Base Freq"    display="hz"      showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
-    <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
-    <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1}  class="accent-slate-300" />
-    <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1}    class="accent-slate-300" />
+  <div class="grid col-span-2 p-8 border rounded border-slate-600">
+    <div class="flex flex-col items-center">
+      <span class="text-3xl mb-6 text-green-500 font-bold">A</span>
+      <Xy label="Parametric Curve"
+        bind:x={distA.freq}
+        bind:y={distA.gain}
+        bind:z={distA.q} minZ={0.01} maxZ={10}>
+        <EqVis dist={distA} color={fromTw('green-500')} class="w-full aspect-square" />
+      </Xy>
+      <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+    </div>
+  </div>
+
+  <div class="grid col-span-2 p-8 border rounded border-slate-600">
+    <div class="flex flex-col items-center">
+      <span class="text-3xl mb-6 text-red-400 font-bold">B</span>
+      <Xy label="Parametric Curve"
+        bind:x={distB.freq}
+        bind:y={distB.gain}
+        bind:z={distB.q} minZ={0.01} maxZ={10}>
+        <EqVis dist={distB} color={fromTw('red-400')} class="w-full aspect-square" />
+      </Xy>
+      <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+    </div>
+  </div>
+
+
+  <!-- Master Panel -->
+
+  <div class="col-span-6 border rounded p-8 border-slate-600">
+    <p class="text-3xl mb-6 w-full text-center text-slate-400 font-bold">Master</p>
+
+    <div class="flex space-x-4 w-full justify-center">
+      <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
+      <Slider label="Base Freq"    display="hz"      showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
+      <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
+      <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1}  class="accent-slate-300" />
+      <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1}    class="accent-slate-300" />
+    </div>
   </div>
 
 {:else}
 
-  <p class="text-4xl col-span-12 text-center">Initialising</p>
+  <p class="text-3xl col-span-12 text-center">Initialising</p>
 
 {/if}
