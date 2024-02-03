@@ -80,13 +80,3 @@
     {label}
   </span>
 {/if}
-
-
-<style>
-  input[orient] {
-    writing-mode: bt-lr;
-    appearance: slider-vertical;
-    width: 1rem;
-    max-height: 8rem;
-  }
-</style>

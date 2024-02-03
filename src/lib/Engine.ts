@@ -9,16 +9,16 @@ const X_SQ:StrideCurve       = (w, f, ix) => f + pow(ix * w, 2)
 
 const CRUNCH_SAMPLES = 256;
 const CRUNCH_OVERSAMPLE = '4x'
+const MAX_CRUNCH = 50
+
 const DEG = PI / 180;
-const DIST_SIGMOID = (k:number, x:number) =>
-  ((3 + k) * x * 20 * DEG) / (PI + k * abs(x))
+const DIST_SIGMOID = (k:number, x:number) => ((3 + k) * x * 20 * DEG) / (PI + k * abs(x))
 
 
 //
 // Binaural Explorer Engine
 //
-// Creates and holds on to it's AudioContext, creates and manages all relevant
-// oscillators and configuration parameters.
+// Creates and manages relevant oscillators and configuration parameters.
 //
 // Behaviour must be specified by a Preset object, which specifies the relevant
 // levels and parameters to set up the engine for use.
@@ -37,23 +37,20 @@ export default class Engine {
   oscs: Osc[]               // Tone oscillators
 
   curve: StrideCurve        // Calculates frequency for each osc from base, index and stride
-  preset?: Preset           // Saved copy of the preset object
+  preset?: ManualPreset     // Saved copy of the preset object
 
   crunch: WaveShaperNode    // Suboscillator distortion node
   distLevel:number          // Seed used to create WaveShaper profile
   crunchCurve:Float32Array  // WaveShaper profile
 
 
-  constructor (level: number, preset?: Preset) {
+  constructor (ctx:AudioContext, level:number) {
 
-    // Create AudioContext
-    const ctx = new AudioContext()
+    this.ctx = ctx
 
     this.out = ctx.createGain()
     this.out.gain.value = level
     this.out.connect(ctx.destination)
-
-    this.ctx = ctx
 
     // Set default values
     this.#freq   = 110
@@ -70,7 +67,7 @@ export default class Engine {
     ]
 
     // Suboscillator Distortion
-    this.distLevel = 1
+    this.distLevel = 0
     this.crunchCurve = new Float32Array(CRUNCH_SAMPLES)
 
     this.crunch = ctx.createWaveShaper()
@@ -81,10 +78,10 @@ export default class Engine {
     // Connect oscillator banks
     this.subs.forEach(sub => sub.out.connect(this.crunch))
     this.oscs.forEach(osc => osc.out.connect(this.out))
-
-    if (preset) this.apply(preset)
   }
 
+
+  // Accessors
 
   get level () {
     return this.out.gain.value
@@ -137,30 +134,7 @@ export default class Engine {
   }
 
 
-  apply (preset:Preset) {
-    const { freq, rate, curve, stride, subs, oscs } = preset
-
-    this.#freq   = freq
-    this.#rate   = rate
-    this.#stride = stride
-    this.curve  = curve
-
-    console.log('Engine::apply - applying preset', preset)
-
-    for (const ix in this.subs) {
-      const sub = this.subs[+ix]
-      sub.level = subs[+ix]
-      this.setSub(+ix)
-    }
-
-    for (const ix in this.oscs) {
-      const osc = this.oscs[+ix]
-      osc.level = oscs[+ix]
-      this.setOsc(+ix, curve)
-    }
-
-    this.preset = preset
-  }
+  // Methods
 
   setSub (ix:number) {
     this.subs[ix].set(LOW_OCTAVE(this.#stride, this.#freq, this.subs.length - ix), this.rate/(pow(ix+1, 2)))
@@ -181,12 +155,47 @@ export default class Engine {
     this.ctx.close()
   }
 
-  setCrunchCurve (k:number) {
+  setCrunchCurve (dist:number) {
+    const k = 1 + dist * (MAX_CRUNCH - 1)
     for (let i = 0; i < CRUNCH_SAMPLES; i++) {
       const x = (i * 2) / CRUNCH_SAMPLES - 1
       this.crunchCurve[i] = DIST_SIGMOID(k, x)
     }
     this.crunch.curve = this.crunchCurve
+  }
+
+
+  // Static Constructors
+
+  static fromManualPreset (ctx:AudioContext, level:number, preset:ManualPreset) {
+    const engine = new Engine(ctx, level)
+    engine.applyManual(preset)
+    return engine
+  }
+
+  applyManual (preset:ManualPreset) {
+    const { freq, rate, curve, stride, subs, oscs } = preset
+
+    this.#freq   = freq
+    this.#rate   = rate
+    this.#stride = stride
+    this.curve  = curve
+
+    console.log('Engine::apply - applying manual preset', preset)
+
+    for (const ix in this.subs) {
+      const sub = this.subs[+ix]
+      sub.level = subs[+ix]
+      this.setSub(+ix)
+    }
+
+    for (const ix in this.oscs) {
+      const osc = this.oscs[+ix]
+      osc.level = oscs[+ix]
+      this.setOsc(+ix, curve)
+    }
+
+    this.preset = preset
   }
 
 }

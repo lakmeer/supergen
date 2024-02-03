@@ -24,7 +24,7 @@
 
   // Presets
 
-  const PRESET_TEST:Preset = {
+  const PRESET_TEST:ManualPreset = {
     freq: C_SHARP[3],
     rate: 23,
     stride: 1,
@@ -33,7 +33,7 @@
     oscs: [ 0.77, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
   }
 
-  const PRESET_SUPERGEN:Preset = {
+  const PRESET_SUPERGEN:ManualPreset = {
     freq: C_SHARP[3],
     rate: 23,
     stride: 1,
@@ -43,13 +43,24 @@
     oscs: [ 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
   }
 
-  const PRESET_SUB_ONLY:Preset = {
+  const PRESET_SUB_ONLY:ManualPreset = {
     freq: C_SHARP[3],
     rate: 2,
     stride: 1,
     curve: DEFAULT_STRIDE_CURVE,
     subs: [ 0.25, 0.45, 0.65 ],
     oscs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+  }
+
+  const PRESET_TEST_PARAM:ParametricPreset = {
+    freq: C_SHARP[3],
+    rate: 2,
+    stride: 1,
+    curve: DEFAULT_STRIDE_CURVE,
+    crunch: 1,
+    distS: { freq: 1.0, gain: 1.0, q: 0.5 },
+    distA: { freq: 0.5, gain: 0.7, q: 0.2 },
+    distB: { freq: 0.5, gain: 0.3, q: 0.2 }
   }
 
 
@@ -91,7 +102,9 @@
   // Init
 
   onMount(() => {
-    engine = new Engine(0.6, PRESET_SUPERGEN)
+    const ctx = new AudioContext()
+
+    engine = Engine.fromManualPreset(ctx, 0.6, PRESET_SUPERGEN)
 
     time = 0
     then = performance.now()
@@ -99,7 +112,7 @@
     poke()
 
     return () => {
-      engine.destroy()
+      ctx.close()
       cancelAnimationFrame(rafref)
     }
   })
@@ -203,10 +216,10 @@
 
     <div class="flex space-x-4 w-full justify-center">
       <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
-      <Slider label="Base Freq"    display="hz"      showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
+      <Slider label="Base Freq"    display="basic"   showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
       <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
       <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1}  class="accent-slate-300" />
-      <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1}    class="accent-slate-300" />
+      <Slider label="Sub Crunch"   display="percent" showValue bind:value={engine.dist}   min={0}   max={1}   step={0.01} class="accent-slate-300" />
     </div>
   </div>
 

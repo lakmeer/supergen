@@ -14,7 +14,7 @@
 </script>
 
 
-<div class="text-center w-12 {$$restProps.class}">
+<div class="text-center w-14 {$$restProps.class}">
   <input class="block mx-auto" orient="vertical" type="range" bind:value {min} {max} {step} {disabled} />
 
   {#if showValue}
