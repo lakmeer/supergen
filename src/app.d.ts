@@ -22,6 +22,7 @@ declare global {
   }
 
   type ManualPreset = {
+    name:   string      // Preset name
     freq:   number      // Base frequency
     rate:   number      // Panning rate
     stride: number      // Stride width
@@ -31,14 +32,15 @@ declare global {
   }
 
   type ParametricPreset = {
+    name:   string      // Preset name
     freq:   number      // Base frequency
     rate:   number      // Panning rate
     crunch: number      // Sub distortion
     stride: number      // Stride width
     curve:  StrideCurve // Stride curve
-    distS:  EqDist      // Sub oscillator EQ
-    distA:  EqDist      // Tone EQ bank A
-    distB:  EqDist      // Tone EQ bank B
+    subs:   EqDist      // Sub oscillator EQ
+    evens:  EqDist      // Tone EQ bank A
+    odds:   EqDist      // Tone EQ bank B
   }
 
 

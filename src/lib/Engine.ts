@@ -37,13 +37,13 @@ export default class Engine {
   oscs: Osc[]               // Tone oscillators
 
   params: {
-    subs:  EqDist             // Suboscillator distribution
-    evens: EqDist             // Oscillator bank A distribution
-    odds:  EqDist             // Oscillator bank B distribution
+    subs:  EqDist           // Suboscillator distribution
+    evens: EqDist           // Oscillator bank A distribution
+    odds:  EqDist           // Oscillator bank B distribution
   }
 
   curve: StrideCurve        // Calculates frequency for each osc from base, index and stride
-  preset?: ManualPreset     // Saved copy of the preset object
+  preset: string            // Saved copy of the preset's name
 
   crunch: WaveShaperNode    // Suboscillator distortion node
   distLevel:number          // Seed used to create WaveShaper profile
@@ -90,6 +90,8 @@ export default class Engine {
     // Connect oscillator banks
     this.subs.forEach(sub => sub.out.connect(this.crunch))
     this.oscs.forEach(osc => osc.out.connect(this.out))
+
+    this.preset = 'none'
   }
 
 
@@ -127,7 +129,6 @@ export default class Engine {
   }
 
   set stride (stride: number) {
-    console.log('Engine::<set>stride', stride)
     this.#stride = stride
     for (const ix in this.subs) { this.setSub(+ix) }
     for (const ix in this.oscs) { this.setOsc(+ix) }
@@ -157,7 +158,6 @@ export default class Engine {
   }
 
   update (t: number, Δt: number):Engine {
-    //console.log('Engine::update', Δt)
     for (const sub of this.subs) { sub.update(Δt) }
     for (const osc of this.oscs) { osc.update(Δt) }
     return this // so that parent context can poke reactives
@@ -186,14 +186,14 @@ export default class Engine {
   }
 
   applyManual (preset:ManualPreset) {
-    const { freq, rate, curve, stride, subs, oscs } = preset
+    const { name, freq, rate, curve, stride, subs, oscs } = preset
 
     this.#freq   = freq
     this.#rate   = rate
     this.#stride = stride
     this.curve  = curve
 
-    console.log('Engine::apply - applying manual preset', preset)
+    console.log('Engine::apply - applying manual preset', name, preset)
 
     for (const ix in this.subs) {
       const sub = this.subs[+ix]
@@ -207,7 +207,7 @@ export default class Engine {
       this.setOsc(+ix, curve)
     }
 
-    this.preset = preset
+    this.preset = name
   }
 
   static fromParametricPreset (ctx:AudioContext, level:number, preset:ParametricPreset) {
@@ -217,36 +217,67 @@ export default class Engine {
   }
 
   applyParametric (preset:ParametricPreset) {
-    const { freq, rate, curve, stride, crunch, subs, evens, odds } = preset
+    const { name, freq, rate, curve, stride, crunch, subs, evens, odds } = preset
 
-    console.log('Engine::apply - applying parametric preset', preset)
+    const distTrap = (dist:EqDist, fn:(dist:EqDist) => void) => {
+      const callback = fn.bind(this)
+
+      return new Proxy(structuredClone(dist), {
+        set (target:EqDist, prop:string, value:number):boolean {
+          target[prop] = value
+          callback(target)
+          return true
+        }
+      })
+    }
+
+    console.log('Engine::apply - applying parametric preset', name, preset)
 
     this.#freq   = freq
     this.#rate   = rate
     this.#stride = stride
     this.curve   = curve
 
-    this.params.subs  = structuredClone(subs)
-    this.params.evens = structuredClone(evens)
-    this.params.odds  = structuredClone(odds)
+    this.params.subs  = distTrap(subs,  this.updateSubs)
+    this.params.evens = distTrap(evens, this.updateEvens)
+    this.params.odds  = distTrap(odds,  this.updateOdds)
 
     this.dist = crunch // updates curve automatically
 
+    // Set stride frequencies
+    for (const ix in this.subs) this.setSub(+ix)
+    for (const ix in this.oscs) this.setOsc(+ix, curve)
+
+    // Set levels
+    this.updateSubs(subs)
+    this.updateEvens(evens)
+    this.updateOdds(odds)
+
+    this.preset = name
+  }
+
+  updateSubs (dist:EqDist) {
+    console.log('Engine::updateSubs', dist)
     for (const ix in this.subs) {
-      const p = ix / (this.subs.length - 1)
-      const sub = this.subs[+ix]
-      this.setSub(+ix)
-      sub.level = norm(p, subs)
+      const p = +ix / (this.subs.length - 1)
+      this.subs[+ix].level = norm(p, dist)
     }
+  }
 
+  updateEvens (dist:EqDist) {
     for (const ix in this.oscs) {
-      const p = ix / (this.oscs.length - 1)
-      const osc = this.oscs[+ix]
-      this.setOsc(+ix, curve)
-      osc.level = norm(p, ix % 2 ? odds : evens)
+      if (+ix % 2 === 1) continue
+      const p = +ix / (this.oscs.length - 1)
+      this.oscs[+ix].level = norm(p, dist)
     }
+  }
 
-    this.preset = preset
+  updateOdds (dist:EqDist) {
+    for (const ix in this.oscs) {
+      if (+ix % 2 === 0) continue
+      const p = +ix / (this.oscs.length - 1)
+      this.oscs[+ix].level = norm(p, dist)
+    }
   }
 
 }

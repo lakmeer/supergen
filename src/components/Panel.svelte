@@ -1,14 +1,14 @@
 <script lang="ts">
-  export let label:string
+  export let label = ""
   export let color = 'text-slate-400'
-  export let vert = false
-  export let horz = false
+  export let vert  = false
+  export let horz  = false
 </script>
 
 
 <div class="border rounded p-4 pb-2 border-slate-600 {$$restProps.class}">
   {#if label}
-  <p class="text-3xl mb-6 w-full text-center font-bold {color}">{ label }</p>
+    <p class="text-3xl mb-6 w-full text-center font-bold {color}">{ label }</p>
   {/if}
 
   {#if horz}

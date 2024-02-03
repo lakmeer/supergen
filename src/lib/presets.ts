@@ -14,6 +14,7 @@ const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, ix) => {
 //
 
 export const PRESET_TEST:ManualPreset = {
+  name: 'Single Freq Test',
   freq: C_SHARP[3],
   rate: 23,
   stride: 1,
@@ -23,6 +24,7 @@ export const PRESET_TEST:ManualPreset = {
 }
 
 export const PRESET_SUPERGEN:ManualPreset = {
+  name: "Matt's Supergen",
   freq: C_SHARP[3],
   rate: 23,
   stride: 1,
@@ -33,6 +35,7 @@ export const PRESET_SUPERGEN:ManualPreset = {
 }
 
 export const PRESET_SUB_ONLY:ManualPreset = {
+  name: "Subs Only Test",
   freq: C_SHARP[3],
   rate: 2,
   stride: 1,
@@ -47,6 +50,7 @@ export const PRESET_SUB_ONLY:ManualPreset = {
 //
 
 export const PRESET_TEST_PARAM:ParametricPreset = {
+  name: "Paramatric Test",
   freq: C_SHARP[3],
   rate: 2,
   stride: 1,
@@ -58,6 +62,7 @@ export const PRESET_TEST_PARAM:ParametricPreset = {
 }
 
 export const PRESET_SUPERGEN_PARAM:ParametricPreset = {
+  name: "Matt's Supergen",
   freq: C_SHARP[3],
   rate: 2,
   stride: 1,
