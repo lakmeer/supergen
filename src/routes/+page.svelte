@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { round, pow } from '$lib/utils'
 
   import Slider from '../components/Slider.svelte'
   import Panner from '../components/Panner.svelte'
@@ -10,8 +11,10 @@
 
   // Config
 
-  const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, x) =>
-    f + 0.0573*(x*x*x) - 0.3228*(x*x) + 1.8576*x - 0.162
+  const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, ix) => {
+    const x = ix * w
+    return f + 0.0573*(x*x*x) - 0.3228*(x*x) + 1.8576*x - 0.162
+  }
 
   const TIME_FACTOR = 1
   const C_SHARP = [ 17.32, 34.65, 69.30, 138.59, 277.18 ]
@@ -33,14 +36,14 @@
     rate: 23,
     stride: 1,
     curve: DEFAULT_STRIDE_CURVE,
-    //subs: [ 0.25, 0.45, 0.65 ],
-    subs: [ 0, 0, 0 ],
+    subs: [ 0.25, 0.45, 0.65 ],
+    //subs: [ 0, 0, 0 ],
     oscs: [ 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
   }
 
   const PRESET_SUB_ONLY:Preset = {
     freq: C_SHARP[3],
-    rate: 23,
+    rate: 2,
     stride: 1,
     curve: DEFAULT_STRIDE_CURVE,
     subs: [ 0.25, 0.45, 0.65 ],
@@ -84,7 +87,7 @@
   // Init
 
   onMount(() => {
-    engine = new Engine(0.6, PRESET_SUB_ONLY)
+    engine = new Engine(0.6, PRESET_SUPERGEN)
 
     time = 0
     then = performance.now()
@@ -114,13 +117,16 @@
     <div class="flex justify-between w-full">
       {#each engine.subs as osc, ix}
         <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
+          <p class="text-center mb-2">1/{pow(2, engine.subs.length - ix)}</p>
           <Panner value={osc.pan} class="bg-blue-500" />
         </Slider>
       {/each}
 
       {#each engine.oscs as osc, ix}
-        <Slider display="percent" bind:value={osc.level} class={ ix % 1 ? "accent-green-500" : "accent-red-400"}>
-          <Panner value={osc.pan} class="bg-green-500" />
+        {@const color = ix % 2 ? 'red-400' : 'green-500'}
+        <Slider display="percent" bind:value={osc.level} class="accent-{color}">
+          <p class="text-center mb-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p>
+          <Panner value={osc.pan} class="bg-{color}" />
         </Slider>
       {/each}
     </div>
@@ -134,11 +140,11 @@
   </div>
 
   <div class="flex col-span-12 space-x-4 border p-8 justify-center border-slate-600">
-    <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-300" />
+    <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400 mr-8" />
     <Slider label="Base Freq"    display="hz"      showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
-    <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.1} max={10}  step={0.1} class="accent-slate-300" />
-    <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1} class="accent-slate-300" />
-    <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1} class="accent-slate-300" />
+    <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
+    <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1}  class="accent-slate-300" />
+    <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1}    class="accent-slate-300" />
   </div>
 
   <p class="col-span-12 text-center">Click anywhere to start sound</p>

@@ -118,6 +118,7 @@ export default class Engine {
   }
 
   set stride (stride: number) {
+    console.log('Engine::<set>stride', stride)
     this.#stride = stride
     for (const ix in this.subs) { this.setSub(+ix) }
     for (const ix in this.oscs) { this.setOsc(+ix) }
@@ -162,7 +163,7 @@ export default class Engine {
   }
 
   setOsc (ix:number, curve = this.curve) {
-    this.oscs[ix].set(curve(this.#stride, this.#freq, ix), 1/(this.#rate+ix))
+    this.oscs[ix].set(curve(this.#stride, this.#freq, ix), 1/(this.#rate + ix))
   }
 
   update (t: number, Δt: number):Engine {

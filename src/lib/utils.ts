@@ -1,8 +1,8 @@
 
 // Math Stuff
 
-const  { abs, pow, floor, random, cos, sin, hypot, PI } = Math
-export { abs, pow, floor, random, cos, sin, hypot, PI }
+const  { abs, pow, floor, round, cos, sin, hypot, PI } = Math
+export { abs, pow, floor, round, cos, sin, hypot, PI }
 export const TAU = PI * 2
 
 export const lerp   = (a:number, b:number, t:number) => a + (b - a) * t
