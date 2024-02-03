@@ -5,43 +5,59 @@
   import Panner from '../components/Panner.svelte'
   import Xy     from '../components/XY.svelte'
 
-  import Engine  from '$lib/Engine'
+  import Engine from '$lib/Engine'
 
 
+  // Config
+
+  const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, x) =>
+    f + 0.0573*(x*x*x) - 0.3228*(x*x) + 1.8576*x - 0.162
+
+  const TIME_FACTOR = 1
   const C_SHARP = [ 17.32, 34.65, 69.30, 138.59, 277.18 ]
+
+
+  // Presets
 
   const PRESET_TEST:Preset = {
     freq: C_SHARP[3],
     rate: 23,
-    sep: 1,
-    tones: [ 0, 0, 0, 0.77, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    stride: 1,
+    curve: DEFAULT_STRIDE_CURVE,
+    subs: [ 0, 0, 0 ],
+    oscs: [ 0.77, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
   }
 
   const PRESET_SUPERGEN:Preset = {
     freq: C_SHARP[3],
     rate: 23,
-    sep: 1,
-    tones: [ 0.25, 0.45, 0.65, 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
+    stride: 1,
+    curve: DEFAULT_STRIDE_CURVE,
+    //subs: [ 0.25, 0.45, 0.65 ],
+    subs: [ 0, 0, 0 ],
+    oscs: [ 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
   }
 
-  let rafref:number
-  let engine:Engine
+  const PRESET_SUB_ONLY:Preset = {
+    freq: C_SHARP[3],
+    rate: 23,
+    stride: 1,
+    curve: DEFAULT_STRIDE_CURVE,
+    subs: [ 0.25, 0.45, 0.65 ],
+    oscs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+  }
 
-  onMount(() => {
-    engine = new Engine(0.6, PRESET_SUPERGEN)
 
-    const poke = () => {
-      engine = engine
-      rafref = requestAnimationFrame(poke)
-    }
+  // Functions
 
-    poke()
-
-    return () => {
-      engine.destroy()
-      cancelAnimationFrame(rafref)
-    }
-  })
+  function poke () {
+    const now = performance.now()
+    const Δt = (now - then)/1000
+    time += Δt * TIME_FACTOR
+    then = now
+    engine = engine.update(time, Δt) // poke
+    rafref = requestAnimationFrame(poke)
+  }
 
   function resumeOnClick () {
     if (engine.ctx.state === 'suspended') {
@@ -54,6 +70,32 @@
       engine.ctx.suspend()
     }
   }
+
+
+  // State
+
+  let engine:Engine
+
+  let time:number
+  let then:number
+  let rafref:number
+
+
+  // Init
+
+  onMount(() => {
+    engine = new Engine(0.6, PRESET_SUB_ONLY)
+
+    time = 0
+    then = performance.now()
+
+    poke()
+
+    return () => {
+      engine.destroy()
+      cancelAnimationFrame(rafref)
+    }
+  })
 </script>
 
 
@@ -70,21 +112,15 @@
 
   <div class="border col-span-8 p-4 flex items-center border-slate-600">
     <div class="flex justify-between w-full">
-      {#each engine.oscs.sub as osc, i}
+      {#each engine.subs as osc, ix}
         <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
           <Panner value={osc.pan} class="bg-blue-500" />
         </Slider>
       {/each}
 
-      {#each engine.oscs.a as osc, i}
-        <Slider display="percent" bind:value={osc.level} class="accent-green-500">
+      {#each engine.oscs as osc, ix}
+        <Slider display="percent" bind:value={osc.level} class={ ix % 1 ? "accent-green-500" : "accent-red-400"}>
           <Panner value={osc.pan} class="bg-green-500" />
-        </Slider>
-      {/each}
-
-      {#each engine.oscs.b as osc, i}
-        <Slider display="percent" bind:value={osc.level} class="accent-red-400">
-          <Panner value={osc.pan} class="bg-red-400" />
         </Slider>
       {/each}
     </div>
@@ -98,10 +134,11 @@
   </div>
 
   <div class="flex col-span-12 space-x-4 border p-8 justify-center border-slate-600">
-    <Slider label="Master Level" display="percent" showValue bind:value={engine.level} min={0}   max={1}   step={0.01} class="accent-slate-300" />
-    <Slider label="Base Freq"    display="hz"      showValue bind:value={engine.base}  min={10}  max={320} step={0.1}  class="accent-slate-300" />
-    <Slider label="Stride"       display="basic"   showValue bind:value={engine.sep}   min={0.1} max={10}  step={0.1} class="accent-slate-300" />
-    <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}  min={0.1} max={60}  step={0.1} class="accent-slate-300" />
+    <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-300" />
+    <Slider label="Base Freq"    display="hz"      showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
+    <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.1} max={10}  step={0.1} class="accent-slate-300" />
+    <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1} class="accent-slate-300" />
+    <Slider label="Sub Crunch"   display="basic"   showValue bind:value={engine.dist}   min={1}   max={50}  step={1} class="accent-slate-300" />
   </div>
 
   <p class="col-span-12 text-center">Click anywhere to start sound</p>

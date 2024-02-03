@@ -1,5 +1,7 @@
 declare global {
 
+  // Svelte
+
 	namespace App {
 		// interface Error {}
 		// interface Locals {}
@@ -11,13 +13,15 @@ declare global {
 
   // Domain
 
-  type FreqXform = (f:number) => number
+  type StrideCurve = (width:number, freq:number, ix:number) => number
 
   type Preset = {
-    freq: number
-    rate: number
-    sep: number
-    tones: number[]
+    freq:   number      // Base frequency
+    rate:   number      // Panning rate
+    stride: number      // Stride width
+    curve:  StrideCurve // Stride curve
+    subs:   number[]    // Sub oscillator levels
+    oscs:   number[]    // Tone oscillator levels
   }
 
 }

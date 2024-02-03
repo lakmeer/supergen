@@ -1,4 +1,5 @@
 <script lang="ts">
+  //@ts-nocheck - ignore 'orient' complaints
   export let value:number
 
   export let min = 0
