@@ -54,7 +54,7 @@ export const PRESET_TEST_PARAM:ParametricPreset = {
   crunch: 0.1,
   subs:  { f: 0.9, a: 0.8, q: 0.5 },
   evens: { f: 0.0, a: 0.7, q: 0.2 },
-  odds:  { f: 1.0, a: 0.3, q: 0.2 }
+  odds:  { f: 1.0, a: 0.3, q: 0.8 }
 }
 
 export const PRESET_SUPERGEN_PARAM:ParametricPreset = {
@@ -63,9 +63,8 @@ export const PRESET_SUPERGEN_PARAM:ParametricPreset = {
   stride: 1,
   curve: DEFAULT_STRIDE_CURVE,
   crunch: 0.1,
-  subs:  { f: 0.9, a: 0.8, q: 0.5 },
-  evens: { f: 0.0, a: 0.7, q: 0.2 },
-  odds:  { f: 1.0, a: 0.3, q: 0.2 }
+  subs:  { f: 0.90, a: 0.67, q: 0.65 },
+  evens: { f: 0.00, a: 0.77, q: 0.32 },
+  odds:  { f: 0.09, a: 0.36, q: 0.05 }
 }
-
 

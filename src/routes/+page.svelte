@@ -3,7 +3,12 @@
   import { round, pow } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
-  import { PRESET_SUPERGEN, PRESET_TEST_PARAM } from '$lib/presets'
+  import {
+    PRESET_TEST,
+    PRESET_SUPERGEN,
+    PRESET_TEST_PARAM,
+    PRESET_SUPERGEN_PARAM,
+  } from '$lib/presets'
 
   import Panel  from '../components/Panel.svelte'
   import Slider from '../components/Slider.svelte'
@@ -29,7 +34,6 @@
     then = now
     if (engine.ctx.state !== 'suspended') {
       engine = engine.update(time, Δt) // poke
-      anotherEngine = anotherEngine.update(time, Δt) // poke
     }
     rafref = requestAnimationFrame(poke)
   }
@@ -55,16 +59,13 @@
   let then:number
   let rafref:number
 
-  let anotherEngine:Engine
-
 
   // Init
 
   onMount(() => {
     const ctx = new AudioContext()
 
-    anotherEngine = Engine.fromManualPreset(ctx, 0.6, PRESET_SUPERGEN)
-    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET_TEST_PARAM)
+    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET_SUPERGEN_PARAM)
 
     time = 0
     then = performance.now()
@@ -88,9 +89,9 @@
     <p class="col-span-12 text-center">Spacebar to shut it up</p>
   {/if}
 
-  <Panel horz label="Parametric" class="col-span-12">
+  <Panel horz class="col-span-12">
     {#each engine.subs as osc, ix}
-      <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
+      <Slider showValue display="percent" bind:value={osc.level} class="accent-blue-500">
         <Panner value={osc.pan} class="bg-blue-500" />
         <p class="font-bold text-center mt-2">1/{pow(2, engine.subs.length - ix)}</p>
       </Slider>
@@ -98,26 +99,9 @@
 
     {#each engine.oscs as osc, ix}
       {@const color = ix % 2 ? 'red-400' : 'green-500'}
-      <Slider display="percent" bind:value={osc.level} class="accent-{color}">
+      <Slider showValue display="percent" bind:value={osc.level} class="accent-{color}">
         <Panner value={osc.pan} class="bg-{color}" />
         <p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p>
-      </Slider>
-    {/each}
-  </Panel>
-
-  <Panel horz label="Manual" class="col-span-12">
-    {#each anotherEngine.subs as osc, ix}
-      <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
-        <Panner value={osc.pan} class="bg-blue-500" />
-        <p class="font-bold text-center mt-2">1/{pow(2, anotherEngine.subs.length - ix)}</p>
-      </Slider>
-    {/each}
-
-    {#each anotherEngine.oscs as osc, ix}
-      {@const color = ix % 2 ? 'red-400' : 'green-500'}
-      <Slider display="percent" bind:value={osc.level} class="accent-{color}">
-        <Panner value={osc.pan} class="bg-{color}" />
-        <p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(anotherEngine.curve(anotherEngine.stride, 1, ix) - 1) } </p>
       </Slider>
     {/each}
   </Panel>
