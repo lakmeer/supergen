@@ -16,9 +16,9 @@ declare global {
   type StrideCurve = (width:number, freq:number, ix:number) => number
 
   type EqDist = {
-    freq: number
-    gain: number
-    q:    number
+    f: number
+    a: number
+    q: number
   }
 
   type ManualPreset = {

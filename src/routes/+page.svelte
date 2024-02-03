@@ -3,6 +3,7 @@
   import { round, pow } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
+  import Panel  from '../components/Panel.svelte'
   import Slider from '../components/Slider.svelte'
   import Panner from '../components/Panner.svelte'
   import Xy     from '../components/XY.svelte'
@@ -30,7 +31,7 @@
     stride: 1,
     curve: DEFAULT_STRIDE_CURVE,
     subs: [ 0, 0, 0 ],
-    oscs: [ 0.77, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    oscs: [ 0.77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
   }
 
   const PRESET_SUPERGEN:ManualPreset = {
@@ -40,7 +41,7 @@
     curve: DEFAULT_STRIDE_CURVE,
     subs: [ 0.25, 0.45, 0.65 ],
     //subs: [ 0, 0, 0 ],
-    oscs: [ 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00 ],
+    oscs: [ 0.77, 0.36, 0.64, 0.00, 0.32, 0.00, 0.18, 0.00, 0.00, 0.00, 0, 0, ],
   }
 
   const PRESET_SUB_ONLY:ManualPreset = {
@@ -49,7 +50,7 @@
     stride: 1,
     curve: DEFAULT_STRIDE_CURVE,
     subs: [ 0.25, 0.45, 0.65 ],
-    oscs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    oscs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
   }
 
   const PRESET_TEST_PARAM:ParametricPreset = {
@@ -169,59 +170,47 @@
 
   <!-- Parametric Controls -->
 
-  <div class="grid col-span-2 p-8 border rounded border-slate-600">
-    <div class="flex flex-col items-center">
-      <span class="text-3xl mb-6 text-blue-500 font-bold">SUB</span>
-      <Xy label="Parametric Curve"
-        bind:x={distS.freq}
-        bind:y={distS.gain}
-        bind:z={distS.q} minZ={0.01} maxZ={10}>
-        <EqVis dist={distS} color={fromTw('blue-500')} class="w-full aspect-square" />
-      </Xy>
-      <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
-    </div>
-  </div>
+  <Panel vert label="SUB" color="text-blue-500" class="col-span-2">
+    <Xy label="Parametric Curve"
+      bind:x={distS.freq}
+      bind:y={distS.gain}
+      bind:z={distS.q} minZ={0.01} maxZ={10}>
+      <EqVis dist={distS} color={fromTw('blue-500')} class="w-full aspect-square" />
+    </Xy>
+    <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+  </Panel>
 
-  <div class="grid col-span-2 p-8 border rounded border-slate-600">
-    <div class="flex flex-col items-center">
-      <span class="text-3xl mb-6 text-green-500 font-bold">A</span>
-      <Xy label="Parametric Curve"
-        bind:x={distA.freq}
-        bind:y={distA.gain}
-        bind:z={distA.q} minZ={0.01} maxZ={10}>
-        <EqVis dist={distA} color={fromTw('green-500')} class="w-full aspect-square" />
-      </Xy>
-      <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
-    </div>
-  </div>
+  <Panel vert label="A" color="text-green-500" class="col-span-2">
+    <Xy label="Parametric Curve"
+      bind:x={distA.freq}
+      bind:y={distA.gain}
+      bind:z={distA.q} minZ={0.01} maxZ={10}>
+      <EqVis dist={distA} color={fromTw('green-500')} class="w-full aspect-square" />
+    </Xy>
+    <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+  </Panel>
 
-  <div class="grid col-span-2 p-8 border rounded border-slate-600">
-    <div class="flex flex-col items-center">
-      <span class="text-3xl mb-6 text-red-400 font-bold">B</span>
-      <Xy label="Parametric Curve"
-        bind:x={distB.freq}
-        bind:y={distB.gain}
-        bind:z={distB.q} minZ={0.01} maxZ={10}>
-        <EqVis dist={distB} color={fromTw('red-400')} class="w-full aspect-square" />
-      </Xy>
-      <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
-    </div>
-  </div>
+  <Panel vert label="B" color="text-red-400" class="col-span-2">
+    <Xy label="Parametric Curve"
+      bind:x={distB.freq}
+      bind:y={distB.gain}
+      bind:z={distB.q} minZ={0.01} maxZ={10}>
+      <EqVis dist={distB} color={fromTw('red-400')} class="w-full aspect-square" />
+    </Xy>
+
+    <p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+  </Panel>
 
 
   <!-- Master Panel -->
 
-  <div class="col-span-6 border rounded p-8 border-slate-600">
-    <p class="text-3xl mb-6 w-full text-center text-slate-400 font-bold">Master</p>
-
-    <div class="flex space-x-4 w-full justify-center">
-      <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
-      <Slider label="Base Freq"    display="basic"   showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
-      <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
-      <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1}  class="accent-slate-300" />
-      <Slider label="Sub Crunch"   display="percent" showValue bind:value={engine.dist}   min={0}   max={1}   step={0.01} class="accent-slate-300" />
-    </div>
-  </div>
+  <Panel horz label="Master" color="text-slate-400" class="col-span-6">
+    <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
+    <Slider label="Base Freq"    display="basic"   showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
+    <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
+    <Slider label="Beat Time"    display="basic"   showValue bind:value={engine.rate}   min={0.1} max={60}  step={0.1}  class="accent-slate-300" />
+    <Slider label="Sub Crunch"   display="percent" showValue bind:value={engine.dist}   min={0}   max={1}   step={0.01} class="accent-slate-300" />
+  </Panel>
 
 {:else}
 

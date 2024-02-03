@@ -36,6 +36,10 @@ export default class Engine {
   subs: Osc[]               // Suboscillators
   oscs: Osc[]               // Tone oscillators
 
+  distS: EqDist             // Suboscillator distribution
+  distA: EqDist             // Oscillator bank A distribution
+  distB: EqDist             // Oscillator bank B distribution
+
   curve: StrideCurve        // Calculates frequency for each osc from base, index and stride
   preset?: ManualPreset     // Saved copy of the preset object
 
@@ -56,14 +60,18 @@ export default class Engine {
     this.#freq   = 110
     this.#rate   = 20
     this.#stride = 1
-    this.curve  = PLUS_ONE
+    this.curve   = PLUS_ONE
+
+    this.distS = { f: 0, a: 0, q: 0 }
+    this.distA = { f: 0, a: 0, q: 0 }
+    this.distB = { f: 0, a: 0, q: 0 }
 
     // Oscillator banks
     this.subs = [ new Osc(ctx), new Osc(ctx), new Osc(ctx), ]
     this.oscs = [
       new Osc(ctx), new Osc(ctx), new Osc(ctx), new Osc(ctx),
       new Osc(ctx), new Osc(ctx), new Osc(ctx), new Osc(ctx),
-      new Osc(ctx), new Osc(ctx),
+      new Osc(ctx), new Osc(ctx), new Osc(ctx), new Osc(ctx),
     ]
 
     // Suboscillator Distortion
