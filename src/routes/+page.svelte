@@ -3,12 +3,7 @@
   import { round, pow } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
-  import {
-    PRESET_TEST,
-    PRESET_SUPERGEN,
-    PRESET_TEST_PARAM,
-    PRESET_SUPERGEN_PARAM,
-  } from '$lib/presets'
+  import * as PRESET from '$lib/presets'
 
   import Panel      from '../components/Panel.svelte'
   import Slider     from '../components/Slider.svelte'
@@ -22,7 +17,7 @@
   // Config
 
   const TIME_FACTOR = 1
-  const DISPLAY_MODE : 'sliders' | 'spectrum' = 'spectrum'
+  let DISPLAY_MODE : 'sliders' | 'spectrum' = 'sliders'
 
 
   // Functions
@@ -67,7 +62,7 @@
   onMount(() => {
     const ctx = new AudioContext()
 
-    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET_TEST_PARAM)
+    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET.SUPERGEN_PARAM)
 
     time = 0
     then = performance.now()
@@ -93,14 +88,14 @@
     <p class="col-span-full text-center -mt-2 xl:-mt-4 mb-4 text-slate-500">Spacebar to shut it up</p>
   {/if}
 
-  {#if DISPLAY_MODE === 'sliders'}
-    <Panel class="col-span-full pb-4 xl:pb-8 overflow-hidden">
-      <EngineSliders {engine} />
-    </Panel>
-  {:else}
+  {#if DISPLAY_MODE === 'spectrum'}
     <div class="col-span-full rounded border border-slate-600 overflow-hidden">
       <EngineVis {engine} />
     </div>
+  {:else}
+    <Panel class="col-span-full pb-4 xl:pb-8 overflow-hidden">
+      <EngineSliders {engine} showLabels />
+    </Panel>
   {/if}
 
 

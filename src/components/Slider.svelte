@@ -6,6 +6,7 @@
   export let max = 1
   export let step = 0.001
 
+  export let color = "white"
   export let label = ""
   export let disabled = false
   export let showValue = false
@@ -14,11 +15,15 @@
 </script>
 
 
-<div class="text-center w-14 {$$restProps.class}">
-  <input class="block mx-auto" orient="vertical" type="range" bind:value {min} {max} {step} {disabled} />
+<div class="text-center w-14 space-y-2 {$$restProps.class}">
+  <input class="block mx-auto"
+    orient="vertical"
+    type="range"
+    style:accent-color={color}
+    bind:value {min} {max} {step} {disabled} />
 
   {#if showValue}
-    <span class="block">
+    <span class="block my-2">
       {#if display === 'basic'}
         <strong>{value.toFixed(2)}</strong>
       {/if}
@@ -37,7 +42,7 @@
     </span>
   {/if}
 
-  <div class="mt-4">
+  <div class="!mt-4">
     <slot />
   </div>
 </div>

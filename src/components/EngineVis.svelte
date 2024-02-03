@@ -1,22 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { lerp, unlerp, max, min, norm } from '$lib/utils'
+  import { lerp, unlerp, exp, max, min, norm } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
   import Engine from '$lib/Engine'
 
   const CANVAS_DPI = 2
   const DRAW_GRID  = true
-  const CURVE_RES  = 50
+  const CURVE_RES  = 10
 
-  const MIN_FREQ = 30/2/2/2  // Lowest 3rd sub-octave of 30Hz
-  const MAX_FREQ = 2000
+  const MIN_FREQ = 30/2/2/2 // Lowest 3rd sub-octave of 30Hz
+  const MAX_FREQ = 2100     // Highest pitch at max base and stride
 
   const RED   = fromTw('red-500')
   const GREEN = fromTw('green-500')
   const BLUE  = fromTw('blue-500')
   const SLATE = fromTw('slate-700')
   const WHITE = fromTw('white')
+
+  type Range = [ number, number ]
 
 
   // Props
@@ -33,12 +35,43 @@
 
   let peek:number
 
+
   // Draw
 
   const log = Math.log10
 
   function logScale (f:number):number {
-    return ((log(f) - log(MIN_FREQ)) / (log(MAX_FREQ) - log(MIN_FREQ)))
+    //return (log(f) - log(MIN_FREQ)) / (log(MAX_FREQ) - log(MIN_FREQ))
+    return unlerp(MIN_FREQ, MAX_FREQ, f)
+  }
+
+  function logNormalCurve (dist:EqDist, color:string, range:Range, w:number, h:number) {
+    ctx.lineWidth = 3 * CANVAS_DPI
+    ctx.strokeStyle = color
+    ctx.fillStyle = color
+
+    let freqRange = range[1] - range[0]
+    let startX    = logScale(range[0]) * w
+    let endX      = logScale(range[1]) * w
+
+    ctx.beginPath()
+    ctx.moveTo(startX, h)
+
+    for (let i = 0; i <= CURVE_RES; i += 1) {
+      let p = i/CURVE_RES
+      let x = logScale(lerp(range[0], range[1], p)) * w
+      let y = h - norm(p, dist) * h
+      ctx.lineTo(x, y)
+      ctx.fillRect(x, y, CANVAS_DPI, CANVAS_DPI)
+    }
+
+    ctx.lineTo(endX, h)
+    ctx.closePath()
+
+    ctx.globalAlpha = 0.2
+    ctx.stroke()
+    ctx.globalAlpha = 0.1
+    ctx.fill()
   }
 
   function draw (engine:Engine) {
@@ -72,8 +105,8 @@
       ctx.stroke()
     }
 
-    let subRange = [ MAX_FREQ, 0 ]
-    let oscRange = [ MAX_FREQ, 0 ]
+    let subRange:Range = [ MAX_FREQ, 0 ]
+    let oscRange:Range = [ MAX_FREQ, 0 ]
 
     // Suboscillators
     for (let sub of engine.subs) {
@@ -97,36 +130,9 @@
     }
 
     // Curves
-    {
-      ctx.lineWidth = 3 * CANVAS_DPI
-      ctx.strokeStyle = GREEN
-      ctx.beginPath()
-      let startX = logScale(oscRange[0]) * w
-      ctx.moveTo(startX, (1 - norm(0, engine.params.evens)) * h)
-      for (let i = 0; i <= CURVE_RES; i += 1) {
-        let p = i / CURVE_RES
-        let f = lerp(oscRange[0], oscRange[1], p)
-        let x = logScale(f) * w
-        ctx.lineTo(x, (1 - norm(p, engine.params.evens)) * h)
-      }
-      ctx.stroke()
-    }
-
-    // Curves
-    {
-      ctx.lineWidth = 3 * CANVAS_DPI
-      ctx.strokeStyle = RED
-      ctx.beginPath()
-      let startX = logScale(oscRange[0]) * w
-      ctx.moveTo(startX, (1 - norm(0, engine.params.odds)) * h)
-      for (let i = 0; i <= CURVE_RES; i += 1) {
-        let p = i / CURVE_RES
-        let f = lerp(oscRange[0], oscRange[1], p)
-        let x = logScale(f) * w
-        ctx.lineTo(x, (1 - norm(p, engine.params.odds)) * h)
-      }
-      ctx.stroke()
-    }
+    logNormalCurve(engine.params.subs,  BLUE,  subRange, w, h)
+    logNormalCurve(engine.params.evens, GREEN, oscRange, w, h)
+    logNormalCurve(engine.params.odds,  RED,   oscRange, w, h)
 
     // Limits
     ctx.globalAlpha = 0.3
