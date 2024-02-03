@@ -20,4 +20,4 @@ export const normalCurve = (x:number, f:number, g:number, q:number) =>
 export const norm = (x:number, dist:EqDist) =>
   normalCurve(x, dist.f, dist.a, dist.q)
 
-export const closeEnough = (a:number, b:number, e = 2.1) => abs(a - b) < e
+export const closeEnough = (a:number, b:number, e = 0.001) => abs(a - b) < e
