@@ -66,7 +66,7 @@
 </script>
 
 
-<div class="text-center w-32 select-none {$$restProps.class}">
+<div class="text-center max-w-32 select-none touch-none {$$restProps.class}">
   <div class="w-full aspect-square rounded border border-slate-700"
     class:opacity-30={disabled}
     use:touchable={pointer}
@@ -76,7 +76,7 @@
 </div>
 
 {#if label}
-  <span class="block mt-2">
+  <span class="mt-2 hidden xl:block">
     {label}
   </span>
 {/if}

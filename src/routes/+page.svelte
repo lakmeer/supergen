@@ -10,12 +10,11 @@
     PRESET_SUPERGEN_PARAM,
   } from '$lib/presets'
 
-  import Panel  from '../components/Panel.svelte'
-  import Slider from '../components/Slider.svelte'
-  import Panner from '../components/Panner.svelte'
-  import Xy     from '../components/XY.svelte'
-  import EqVis  from '../components/EqVis.svelte'
-  import Eq     from '../components/Eq.svelte'
+  import Panel      from '../components/Panel.svelte'
+  import Slider     from '../components/Slider.svelte'
+  import EqInput    from '../components/EqInput.svelte'
+  import EngineVis  from '../components/EngineVis.svelte'
+  import EngineSliders from '../components/EngineSliders.svelte'
 
   import Engine from '$lib/Engine'
 
@@ -23,6 +22,7 @@
   // Config
 
   const TIME_FACTOR = 1
+  const DISPLAY_MODE : 'sliders' | 'spectrum' = 'spectrum'
 
 
   // Functions
@@ -67,7 +67,7 @@
   onMount(() => {
     const ctx = new AudioContext()
 
-    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET_SUPERGEN_PARAM)
+    engine = Engine.fromParametricPreset(ctx, 0.6, PRESET_TEST_PARAM)
 
     time = 0
     then = performance.now()
@@ -88,41 +88,34 @@
   <p class="col-span-full text-3xl w-full text-center font-bold text-slate-400">{ engine.preset }</p>
 
   {#if engine.ctx.state === 'suspended'}
-    <p class="col-span-full text-center -mt-4 mb-4 text-slate-500">Click anywhere to start sound</p>
+    <p class="col-span-full text-center -mt-2 xl:-mt-4 mb-4 text-slate-500">Click anywhere to start sound</p>
   {:else}
-    <p class="col-span-full text-center -mt-4 mb-4 text-slate-500">Spacebar to shut it up</p>
+    <p class="col-span-full text-center -mt-2 xl:-mt-4 mb-4 text-slate-500">Spacebar to shut it up</p>
   {/if}
 
-  <Panel horz class="col-span-full pt-6 pb-6">
-    {#each engine.subs as osc, ix}
-      <Slider display="percent" bind:value={osc.level} class="accent-blue-500">
-        <Panner value={osc.pan} class="bg-blue-500" />
-        <!-- p class="font-bold text-center mt-2">1/{pow(2, engine.subs.length - ix)}</p -->
-      </Slider>
-    {/each}
-
-    {#each engine.oscs as osc, ix}
-      {@const color = ix % 2 ? 'red-400' : 'green-500'}
-      <Slider display="percent" bind:value={osc.level} class="accent-{color}">
-        <Panner value={osc.pan} class="bg-{color}" />
-        <!-- p class="font-bold text-center mt-2">{ ix === 0 ? 'Base' : '+' + round(engine.curve(engine.stride, 1, ix) - 1) } </p -->
-      </Slider>
-    {/each}
-  </Panel>
+  {#if DISPLAY_MODE === 'sliders'}
+    <Panel class="col-span-full pb-4 xl:pb-8 overflow-hidden">
+      <EngineSliders {engine} />
+    </Panel>
+  {:else}
+    <div class="col-span-full rounded border border-slate-600 overflow-hidden">
+      <EngineVis {engine} />
+    </div>
+  {/if}
 
 
   <!-- Parametric Controls -->
 
   <Panel vert label="Subs" color="text-blue-500" class="col-span-2">
-    <Eq bind:value={engine.params.subs} color={fromTw('blue-500')} />
+    <EqInput bind:value={engine.params.subs} color={fromTw('blue-500')} />
   </Panel>
 
   <Panel vert label="Evens" color="text-green-500" class="col-span-2">
-    <Eq bind:value={engine.params.evens} color={fromTw('green-500')} />
+    <EqInput bind:value={engine.params.evens} color={fromTw('green-500')} />
   </Panel>
 
   <Panel vert label="Odds" color="text-red-400" class="col-span-2">
-    <Eq bind:value={engine.params.odds} color={fromTw('red-400')} />
+    <EqInput bind:value={engine.params.odds} color={fromTw('red-400')} />
   </Panel>
 
 

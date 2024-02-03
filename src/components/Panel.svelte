@@ -6,9 +6,9 @@
 </script>
 
 
-<div class="border rounded p-4 pb-2 border-slate-600 {$$restProps.class}">
+<div class="rounded xl:p-4 xl:pb-2 xl:border border-slate-600 {$$restProps.class}">
   {#if label}
-    <p class="text-3xl mb-6 w-full text-center font-bold {color}">{ label }</p>
+    <p class="text-xl xl:text-2xl mb-2 xl:mb-4 w-full text-center font-bold {color}">{ label }</p>
   {/if}
 
   {#if horz}

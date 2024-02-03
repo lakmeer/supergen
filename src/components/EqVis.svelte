@@ -70,7 +70,7 @@
 </script>
 
 
-<canvas class="block {$$restProps.class}"
+<canvas class="block w-full {$$restProps.class}"
   bind:this={canvas}
   bind:clientWidth={width}
   bind:clientHeight={height}

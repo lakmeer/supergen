@@ -140,6 +140,8 @@ export default class Engine {
 
   set rate (rate:number) {
     this.#rate = rate
+    for (const ix in this.subs) { this.setSub(+ix) }
+    for (const ix in this.oscs) { this.setOsc(+ix) }
   }
 
   get total () {
@@ -223,7 +225,7 @@ export default class Engine {
       const callback = fn.bind(this)
 
       return new Proxy(structuredClone(dist), {
-        set (target:EqDist, prop:string, value:number):boolean {
+        set (target:EqDist, prop:keyof EqDist, value:number):boolean {
           target[prop] = value
           callback(target)
           return true
@@ -257,7 +259,6 @@ export default class Engine {
   }
 
   updateSubs (dist:EqDist) {
-    console.log('Engine::updateSubs', dist)
     for (const ix in this.subs) {
       const p = +ix / (this.subs.length - 1)
       this.subs[+ix].level = norm(p, dist)

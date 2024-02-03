@@ -12,7 +12,7 @@
   bind:z={value.q} minZ={0.01} maxZ={10}>
 
   <EqVis dist={value} {color} class="w-full aspect-square" />
-
 </Xy>
-<p class="text-sm text-center text-slate-400">Scroll controls Q</p>
+
+<p class="text-sm hidden xl:block text-center text-slate-400">Scroll controls Q</p>
 

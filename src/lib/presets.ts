@@ -51,7 +51,7 @@ export const PRESET_SUB_ONLY:ManualPreset = {
 
 export const PRESET_TEST_PARAM:ParametricPreset = {
   name: "Paramatric Test",
-  freq: C_SHARP[3],
+  freq: C_SHARP[1],
   rate: 2,
   stride: 1,
   curve: DEFAULT_STRIDE_CURVE,
