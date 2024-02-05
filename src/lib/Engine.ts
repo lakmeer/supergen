@@ -189,13 +189,12 @@ export default class Engine {
   }
 
   applyManual (preset:ManualPreset) {
-    const { name, freq, rate, curve, inverse, stride, subs, oscs } = preset
+    const { name, freq, rate, curve, stride, subs, oscs } = preset
 
     this.#freq   = freq
     this.#rate   = rate
     this.#stride = stride
     this.curve   = curve
-    this.uncurve = inverse
 
     console.log('Engine::apply - applying manual preset', name, preset)
 
