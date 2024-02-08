@@ -19,3 +19,8 @@
   }
 }
 
+@layer utilities {
+  .center-origin {
+    transform: translate(-50%, -50%);
+  }
+}

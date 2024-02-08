@@ -8,7 +8,10 @@
   import Panel      from '../components/Panel.svelte'
   import Slider     from '../components/Slider.svelte'
   import EqInput    from '../components/EqInput.svelte'
-  import EngineVis  from '../components/EngineVis.svelte'
+  import XyInput    from '../components/Xy.svelte'
+  import FormantVis from '../components/FormantVis.svelte'
+
+  import EngineVis     from '../components/EngineVis.svelte'
   import EngineSliders from '../components/EngineSliders.svelte'
 
   import Engine from '$lib/Engine'
@@ -116,9 +119,24 @@
   </Panel>
 
 
+  <!-- Voice Panel -->
+
+  <Panel horz label="Voice" color="text-slate-300" class="col-span-3">
+    <Slider label="Level"  display="basic" showValue
+      bind:value={engine.voice.out.gain.value}
+      min={0.0} max={1}   step={0.001} class="accent-slate-300" />
+
+    <div class="w-32 text-center">
+      <XyInput label="Formants" bind:x={engine.voice.x} bind:y={engine.voice.y}>
+        <FormantVis x={engine.voice.x} y={engine.voice.y} />
+      </XyInput>
+    </div>
+  </Panel>
+
+
   <!-- Master Panel -->
 
-  <Panel horz label="Master" color="text-slate-300" class="col-span-6">
+  <Panel horz label="Master" color="text-slate-300" class="col-span-3">
     <Slider label="Master Level" display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
     <Slider label="Base Freq"    display="basic"   showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
     <Slider label="Stride"       display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />

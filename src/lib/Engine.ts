@@ -1,7 +1,8 @@
 
 import { abs, pow, norm, PI } from '$lib/utils'
 
-import Osc from '$lib/Osc'
+import Osc   from '$lib/Osc'
+import Voice from '$lib/Voice'
 
 const PLUS_ONE:StrideCurve   = (w, f, ix) => f + ix * w
 const LOW_OCTAVE:StrideCurve = (w, f, ix) => f/pow(2, abs(ix))
@@ -79,6 +80,9 @@ export default class Engine {
       new Osc(ctx), new Osc(ctx), new Osc(ctx), new Osc(ctx),
     ]
 
+    this.voice = new Voice(ctx)
+    this.voice.freq = this.#freq / 4
+
     // Suboscillator Distortion
     this.distLevel = 0
     this.crunchCurve = new Float32Array(CRUNCH_SAMPLES)
@@ -91,6 +95,8 @@ export default class Engine {
     // Connect oscillator banks
     this.subs.forEach(sub => sub.out.connect(this.crunch))
     this.oscs.forEach(osc => osc.out.connect(this.out))
+
+    this.voice.out.connect(this.out)
 
     this.preset = 'none'
   }
@@ -114,6 +120,7 @@ export default class Engine {
     this.#freq = freq
     for (const ix in this.subs) { this.setSub(+ix) }
     for (const ix in this.oscs) { this.setOsc(+ix) }
+    this.voice.freq = freq / 4
   }
 
   get dist () {

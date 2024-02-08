@@ -49,13 +49,7 @@
   }
 
 
-  // Internal value
-
-  $: internal = {
-    x: unlerp(minX, maxX, x),
-    y: unlerp(minY, maxY, y),
-    z: unlerp(minZ, maxZ, z)
-  }
+  // Init
 
   onMount(() => {
     if (!disabled) {
