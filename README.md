@@ -64,3 +64,8 @@ For operator control
 - Disable chair speaker
 - Disable strobing or blinking visuals
 
+# Notes
+
+- https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/demos/wavetable-synth/wave-tables
+- https://waveeditonline.com/ 
+
