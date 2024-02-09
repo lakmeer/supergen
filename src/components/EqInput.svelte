@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Xy     from '../components/XY.svelte'
+  import Xy     from '../components/Xy.svelte'
   import EqVis  from '../components/EqVis.svelte'
 
   export let value:EqDist
