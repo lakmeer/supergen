@@ -1,8 +1,9 @@
 
 import { abs, pow, norm, PI } from '$lib/utils'
 
-import Osc   from '$lib/Osc'
-import Voice from '$lib/Voice'
+import Osc      from '$lib/Osc'
+import Voice    from '$lib/Voice'
+import SuperOsc from '$lib/Super'
 
 const PLUS_ONE:StrideCurve   = (w, f, ix) => f + ix * w
 const LOW_OCTAVE:StrideCurve = (w, f, ix) => f/pow(2, abs(ix))
@@ -36,6 +37,9 @@ export default class Engine {
 
   subs: Osc[]               // Suboscillators
   oscs: Osc[]               // Tone oscillators
+  voice: Voice              // Chant oscillator
+
+  super: SuperOsc           // Multi-voice detuned oscillator
 
   params: {
     subs:  EqDist           // Suboscillator distribution
@@ -60,7 +64,7 @@ export default class Engine {
     this.out.connect(ctx.destination)
 
     // Set default values
-    this.#freq   = 110
+    this.#freq   = 120
     this.#rate   = 20
     this.#stride = 1
     this.curve   = PLUS_ONE
@@ -83,6 +87,9 @@ export default class Engine {
     this.voice = new Voice(ctx)
     this.voice.freq = this.#freq / 4
 
+    //this.super = new SuperOsc(ctx)
+    //this.super.freq = this.#freq
+
     // Suboscillator Distortion
     this.distLevel = 0
     this.crunchCurve = new Float32Array(CRUNCH_SAMPLES)
@@ -97,8 +104,11 @@ export default class Engine {
     this.oscs.forEach(osc => osc.out.connect(this.out))
 
     this.voice.out.connect(this.out)
+    //this.super.out.connect(this.out)
 
     this.preset = 'none'
+
+    this.freq = this.#freq
   }
 
 
@@ -120,7 +130,8 @@ export default class Engine {
     this.#freq = freq
     for (const ix in this.subs) { this.setSub(+ix) }
     for (const ix in this.oscs) { this.setOsc(+ix) }
-    this.voice.freq = freq / 4
+    this.voice.freq = freq
+    //this.super.freq = freq / 2
   }
 
   get dist () {
@@ -246,9 +257,9 @@ export default class Engine {
 
     console.log('Engine::apply - applying parametric preset', name, preset)
 
-    this.#freq   = freq
-    this.#rate   = rate
-    this.#stride = stride
+    this.freq   = freq
+    this.rate   = rate
+    this.stride = stride
     this.curve   = curve
 
     this.params.subs  = distTrap(subs,  this.updateSubs)

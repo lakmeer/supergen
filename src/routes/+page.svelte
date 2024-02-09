@@ -126,11 +126,21 @@
       bind:value={engine.voice.out.gain.value}
       min={0.0} max={1}   step={0.001} class="accent-slate-300" />
 
-    <div class="w-32 text-center">
-      <XyInput label="Formants" bind:x={engine.voice.x} bind:y={engine.voice.y}>
-        <FormantVis x={engine.voice.x} y={engine.voice.y} />
-      </XyInput>
-    </div>
+    <Slider label="Voices"  display="basic" showValue
+      bind:value={engine.voice.voices}
+      min={1} max={32}   step={1} class="accent-slate-300" />
+
+    <Slider label="Spread"  display="basic" showValue
+      bind:value={engine.voice.spread}
+      min={0.1} max={5}   step={0.001} class="accent-slate-300" />
+
+    <Slider label="Presence"  display="basic" showValue
+      bind:value={engine.voice.presence}
+      min={0.0} max={1} step={0.001} class="accent-slate-300" />
+
+    <Slider label="Octave"  display="basic" showValue
+      bind:value={engine.voice.octave}
+      min={-2} max={0} step={1} class="accent-slate-300" />
   </Panel>
 
 
