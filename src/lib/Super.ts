@@ -6,8 +6,6 @@ type ParamSetter = (param:AudioParam, v:number, t?:number) => void
 const SAFETY_THRESHOLD = 0.5
 const MAX_PAN_WIDTH    = 0.8
 
-import * as TABLES from '$lib/wavetables'
-
 
 //
 // SuperOscillator
@@ -49,8 +47,6 @@ export default class SuperOsc {
       this.oscs[i] = ctx.createOscillator()
       this.oscs[i].frequency.value = 20
       this.oscs[i].setPeriodicWave(genWave(ctx, phasedSine(rand(PI))))
-
-      //this.oscs[i].setPeriodicWave(genWave(ctx, TABLES.Throaty))
       this.oscs[i].detune.value = rand(100)
     }
 
