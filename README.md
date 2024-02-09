@@ -66,6 +66,11 @@ For operator control
 
 # Notes
 
-- https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/demos/wavetable-synth/wave-tables
-- https://waveeditonline.com/ 
+- Voice Synth
+  - Spectral analyis of real chanting to get appropriate formants?
+  - Explore more wavetables
+  - Wavetable lerping
+  - References
+    - https://github.com/GoogleChromeLabs/web-audio-samples/tree/main/src/demos/wavetable-synth/wave-tables
+    - https://waveeditonline.com/ 
 

@@ -14,6 +14,15 @@ function phased (ctx, phase = 0) {
 }
 
 
+//
+// Voice Synth
+//
+// A chorus of almost-in-tune wavetable oscillator set to a throaty fourier series I
+// found by accident. More research required for better results, including blending
+// multiple wavetables, using a better filter, and somehow incorporating formant
+// filtering in a way that it compatible with the very low frequencies.
+//
+
 export default class Voice {
 
   oscs:       OscillatorNode[]
