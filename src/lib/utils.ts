@@ -22,3 +22,18 @@ export const norm = (x:number, dist:EqDist) =>
   normalCurve(x, dist.f, dist.a, dist.q)
 
 export const closeEnough = (a:number, b:number, e = 0.001) => abs(a - b) < e
+
+
+// Web Stuff
+
+type KeyHandler = (event:KeyboardEvent) => void
+
+export const whichKey = (key:KeyboardEvent['key'], handler:KeyHandler) => {
+  if (!handler) {
+    return (event:KeyboardEvent) => console.info('whichKey:', key, event.key)
+  }
+
+  return (event:KeyboardEvent) => {
+    if (event.key === key) handler(event)
+  }
+}

@@ -23,4 +23,14 @@
   .center-origin {
     transform: translate(-50%, -50%);
   }
+
+  .button {
+    @apply text-lg xl:text-base py-1 px-2 cursor-pointer;
+    @apply text-slate-300 bg-slate-900 hover:bg-slate-800;
+    @apply border border-slate-600 rounded;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
 }

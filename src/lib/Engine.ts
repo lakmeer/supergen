@@ -9,10 +9,6 @@ const PLUS_ONE:StrideCurve   = (w, f, ix) => f + ix * w
 const LOW_OCTAVE:StrideCurve = (w, f, ix) => f/pow(2, abs(ix))
 const X_SQ:StrideCurve       = (w, f, ix) => f + pow(ix * w, 2)
 
-const CRUNCH_SAMPLES = 256;
-const CRUNCH_OVERSAMPLE = '4x'
-const MAX_CRUNCH = 50
-
 const DEG = PI / 180;
 const DIST_SIGMOID = (k:number, x:number) => ((3 + k) * x * 20 * DEG) / (PI + k * abs(x))
 
@@ -50,10 +46,6 @@ export default class Engine {
   curve: StrideCurve        // Calculates frequency for each osc from base, index and stride
   preset: string            // Saved copy of the preset's name
 
-  crunch: WaveShaperNode    // Suboscillator distortion node
-  distLevel:number          // Seed used to create WaveShaper profile
-  crunchCurve:Float32Array  // WaveShaper profile
-
 
   constructor (ctx:AudioContext, level:number) {
 
@@ -90,17 +82,8 @@ export default class Engine {
     //this.super = new SuperOsc(ctx)
     //this.super.freq = this.#freq
 
-    // Suboscillator Distortion
-    this.distLevel = 0
-    this.crunchCurve = new Float32Array(CRUNCH_SAMPLES)
-
-    this.crunch = ctx.createWaveShaper()
-    this.crunch.oversample = CRUNCH_OVERSAMPLE
-    this.crunch.connect(this.out)
-    this.setCrunchCurve(this.distLevel)
-
     // Connect oscillator banks
-    this.subs.forEach(sub => sub.out.connect(this.crunch))
+    this.subs.forEach(sub => sub.out.connect(this.out))
     this.oscs.forEach(osc => osc.out.connect(this.out))
 
     this.voice.out.connect(this.out)
@@ -132,15 +115,6 @@ export default class Engine {
     for (const ix in this.oscs) { this.setOsc(+ix) }
     this.voice.freq = freq
     //this.super.freq = freq / 2
-  }
-
-  get dist () {
-    return this.distLevel
-  }
-
-  set dist (v:number) {
-    this.distLevel = v
-    this.setCrunchCurve(this.distLevel)
   }
 
   get stride () {
@@ -188,61 +162,34 @@ export default class Engine {
     this.ctx.close()
   }
 
-  setCrunchCurve (dist:number) {
-    const k = 1 + dist * (MAX_CRUNCH - 1)
-    for (let i = 0; i < CRUNCH_SAMPLES; i++) {
-      const x = (i * 2) / CRUNCH_SAMPLES - 1
-      this.crunchCurve[i] = DIST_SIGMOID(k, x)
-    }
-    this.crunch.curve = this.crunchCurve
-  }
-
-
-  // Manual Constructor
-
-  static fromManualPreset (ctx:AudioContext, level:number, preset:ManualPreset) {
-    const engine = new Engine(ctx, level)
-    engine.applyManual(preset)
-    return engine
-  }
-
-  applyManual (preset:ManualPreset) {
-    const { name, freq, rate, curve, stride, subs, oscs } = preset
-
-    this.#freq   = freq
-    this.#rate   = rate
-    this.#stride = stride
-    this.curve   = curve
-
-    console.log('Engine::apply - applying manual preset', name, preset)
-
-    for (const ix in this.subs) {
-      const sub = this.subs[+ix]
-      sub.level = subs[+ix]
-      this.setSub(+ix)
-    }
-
-    for (const ix in this.oscs) {
-      const osc = this.oscs[+ix]
-      osc.level = oscs[+ix]
-      this.setOsc(+ix, curve)
-    }
-
-    this.preset = name
-  }
-
 
   // Parametric Mode
 
-  static fromParametricPreset (ctx:AudioContext, level:number, preset:ParametricPreset) {
+  static fromPreset (ctx:AudioContext, level:number, preset:Preset) {
     const engine = new Engine(ctx, level)
-    engine.applyParametric(preset)
+    engine.apply(preset)
     return engine
   }
 
-  applyParametric (preset:ParametricPreset) {
-    const { name, freq, rate, curve, stride, crunch, subs, evens, odds } = preset
+  apply (preset:Preset) {
+    const { name, freq, rate, curve, stride, subs, evens, odds, vox } = preset
 
+    console.log('Engine::apply - applying parametric preset:', name, preset)
+
+    this.preset = name
+
+    this.freq   = freq
+    this.rate   = rate
+    this.stride = stride
+    this.curve  = curve
+
+    this.applyCurve(curve, subs, evens, odds)
+    this.voice.apply(vox)
+
+    console.log('Engine::apply - 🟢 done.')
+  }
+
+  applyCurve (curve:StrideCurve, subs:EqDist, evens:EqDist, odds:EqDist) {
     const distTrap = (dist:EqDist, fn:(dist:EqDist) => void) => {
       const callback = fn.bind(this)
 
@@ -255,18 +202,10 @@ export default class Engine {
       })
     }
 
-    console.log('Engine::apply - applying parametric preset', name, preset)
-
-    this.freq   = freq
-    this.rate   = rate
-    this.stride = stride
-    this.curve   = curve
-
+    // Proxy eq distribution objects to watch updates
     this.params.subs  = distTrap(subs,  this.updateSubs)
     this.params.evens = distTrap(evens, this.updateEvens)
     this.params.odds  = distTrap(odds,  this.updateOdds)
-
-    this.dist = crunch // updates curve automatically
 
     // Set stride frequencies
     for (const ix in this.subs) this.setSub(+ix)
@@ -276,8 +215,6 @@ export default class Engine {
     this.updateSubs(subs)
     this.updateEvens(evens)
     this.updateOdds(odds)
-
-    this.preset = name
   }
 
   updateSubs (dist:EqDist) {
@@ -301,6 +238,32 @@ export default class Engine {
       const p = +ix / (this.oscs.length - 1)
       this.oscs[+ix].level = norm(p, dist)
     }
+  }
+
+
+  // External Use
+
+  get running () {
+    return this.ctx.state !== 'suspended'
+  }
+
+  set running (mode?:boolean) {
+    if (mode) { // switch on
+      console.log('resume')
+      if (this.running) return
+      console.log('resume')
+      this.ctx.resume()
+    } else { // switch off
+      console.log('stop')
+      if (!this.running) return
+      console.log('stop')
+      this.ctx.suspend()
+    }
+  }
+
+  toggle () {
+    this.running = !this.running
+    return this // for svelte reactive poke
   }
 
 }

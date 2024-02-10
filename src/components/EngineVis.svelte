@@ -187,8 +187,7 @@
   <canvas class="w-full aspect-[4] xl:aspect-[5] bg-slate-950"
     bind:this={canvas} bind:clientWidth={width} bind:clientHeight={height} />
 
-  <button
-    class="absolute text-xs xl:text-base bottom-2 right-2 py-1 px-2 cursor-pointer bg-slate-900 border border-slate-600 text-slate-300 rounded"
+  <button class="button absolute bottom-2 right-2"
     on:click={() => MODE = MODE === 'log' ? 'linear' : 'log'}
     type="button">
     { MODE }

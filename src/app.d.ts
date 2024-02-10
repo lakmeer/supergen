@@ -21,23 +21,22 @@ declare global {
     q: number
   }
 
-  type ManualPreset = {
-    name:   string      // Preset name
-    freq:   number      // Base frequency
-    rate:   number      // Panning rate
-    stride: number      // Stride width
-    curve:  StrideCurve // Stride curve
-    subs:   number[]    // Sub oscillator levels
-    oscs:   number[]    // Tone oscillator levels
+  type VoxConfig = {
+    level:  number      // Overall volume
+    tone:   number      // Which wavetable
+    num:    number      // Number of voices
+    pres:   number      // Presence (filter resonance)
+    spread: number      // Detune spread
+    oct:    number      // Octave from 0 to -2
   }
 
-  type ParametricPreset = {
+  type Preset = {
     name:   string      // Preset name
     freq:   number      // Base frequency
     rate:   number      // Panning rate
-    crunch: number      // Sub distortion
+    curve:  StrideCurve // Stride curve (relative harmonics)
     stride: number      // Stride width
-    curve:  StrideCurve // Stride curve
+    vox:    VoxConfig   // Voice drone config
     subs:   EqDist      // Sub oscillator EQ
     evens:  EqDist      // Tone EQ bank A
     odds:   EqDist      // Tone EQ bank B
