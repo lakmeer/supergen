@@ -14,6 +14,30 @@ const DEEP_VOX:VoxConfig    = { level: 0.7, tone: 0, oct: -2, pres: 0.9, num: 24
 
 
 //
+// Primary Settings
+//
+
+export const NEW_SUPERGEN:Preset = {
+  name: "Nangineering 0.4",
+  freq: C_SHARP[3],
+  rate: 2,
+  stride: 1,
+  curve: DEFAULT_STRIDE_CURVE,
+  subs:  { f: 0.90, a: 0.67, q: 0.65 },
+  evens: { f: 0.00, a: 0.77, q: 0.32 },
+  odds:  { f: 0.09, a: 0.36, q: 0.05 },
+  vox: {
+    level: 0.9,
+    tone: 1,
+    oct: 0,
+    pres: 0.0,
+    num: 10,
+    spread: 1.0
+  }
+}
+
+
+//
 // Parametric Presets
 //
 
@@ -55,25 +79,19 @@ export const MATT_SUPERGEN:Preset = {
 
 export const VOICE_TEST:Preset = {
   name: "Vocal Testing: Single Wavetable",
-  freq: 100,
+  freq: 50,
   rate: 2,
   stride: 1,
   curve: DEFAULT_STRIDE_CURVE,
   subs:  { f: 0.90, a: 0.0, q: 0.65 },
   evens: { f: 0.00, a: 0.0, q: 0.32 },
   odds:  { f: 0.09, a: 0.0, q: 0.05 },
-  vox: { level: 0.9, tone: 1, oct: 0, pres: 0.9, num: 1, spread: 0.0 }
+  vox: {
+    level: 0.9,
+    tone: 1,
+    oct: 0,
+    pres: 0.0,
+    num: 10,
+    spread: 0.8
+  }
 }
-
-export const NEW_SUPERGEN:Preset = {
-  name: "Nangineering 0.4",
-  freq: C_SHARP[3],
-  rate: 2,
-  stride: 1,
-  curve: DEFAULT_STRIDE_CURVE,
-  subs:  { f: 0.90, a: 0.67, q: 0.65 },
-  evens: { f: 0.00, a: 0.77, q: 0.32 },
-  odds:  { f: 0.09, a: 0.36, q: 0.05 },
-  vox: DEFAULT_VOX
-}
-

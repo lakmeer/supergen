@@ -6,35 +6,78 @@ const MIN_Q    = 0.1
 const MAX_Q    = 5
 const DEFAULT_VOICES = 16
 
+type WaveTable = {
+  real: number | Float32Array,
+  imag: number | Float32Array,
+}
 
 function phased (ctx, phase = 0) {
   let real = cos(phase)
   let imag = sin(phase)
 
   return ctx.createPeriodicWave(
-    [ 0, real, 1,  0.5, 0.6,  0.0, 0.4, -0.5 ],
-    [ 0, imag, 0, -0.5, 0.0, -0.4, 0.0,  0.0 ],
+    [ 0, 1,  0.5, 0.6,  0.0, 0.4, -0.5 ],
+    [ 0, 0, -0.5, 0.0, -0.4, 0.0,  0.0 ],
   )
 }
 
+function moreHum (real:number[], imag:number[], length:number, amount:number, falloff = () => 1, ignoreImag = false) {
+  for (let i = 0; i < length; i++) {
+    real.push(amount * falloff(i/length))
+    imag.push(ignoreImag ? 0 : (amount * falloff(i/length)))
+  }
+  return [ real, imag ]
+}
+
+function truncate (real:number[], imag:number[], length:number) {
+  const len = real.length
+  return [ real.slice(0, len - length), imag.slice(0, len - length) ]
+}
+
+function add (realA:number[], imagA:number[], realB:number[], imagB:number[]) {
+  const len = Math.max(realA.length, realB.length)
+  for (let i = 0; i < len; i++) {
+    realA[i] += realB[i] || 0
+    imagA[i] += imagB[i] || 0
+  }
+  return [ realA, imagA ]
+}
+
+const GUESS = [
+  [ 0, 1, 0.372, 0.357, 0.266, 0.269, 0.093, 0.040, 0.083 ],
+  [ 0, 0, 0.495, 0.463, 0.350, 0.347, 0.121, 0.047, 0.106 ],
+]
+
+const GUESS_NO_FUND = [
+  [ 0, 0.372, 0.357, 0.266, 0.269, 0.093, 0.040, 0.083 ],
+  [ 0, 0.495, 0.463, 0.350, 0.347, 0.121, 0.047, 0.106 ],
+]
+
+const A = [
+  [ 0, 0.01, 0.915, 0.023, 0.023, 0.045, 0.015, 0.045, 0.03, 0.045, 0.025, 0.205, 0.095, 0.02, 0.03, 0.02, 0.02, 0.01, 0.015, 0.015, 0.01, 0.01, 0.0, 0.015, 0.01, 0.01, 0.015, 0.025, 0.03, 0.03, 0.015, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.0, 0.01, 0.0, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.015, 0.015, 0.01, 0.015, 0.01 ],
+  [ 0, 0.01, 0.015, 0.023, 0.023, 0.045, 0.015, 0.045, 0.03, 0.045, 0.025, 0.205, 0.095, 0.02, 0.03, 0.02, 0.02, 0.01, 0.015, 0.015, 0.01, 0.01, 0.0, 0.015, 0.01, 0.01, 0.015, 0.025, 0.03, 0.03, 0.015, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.0, 0.01, 0.0, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.015, 0.015, 0.01, 0.015, 0.01 ],
+]
+
+
 function test1 (ctx, phase = 0) {
-  return ctx.createPeriodicWave(
-    [ 0, 1, 0.372, 0.357, 0.266, 0.269, 0.093, 0.040, 0.083 ],
-    [ 0, 0, 0.495, 0.463, 0.350, 0.347, 0.121, 0.047, 0.106 ]
-  )
+  return ctx.createPeriodicWave(...GUESS)
 }
 
 function test2 (ctx, phase = 0) {
-  return ctx.createPeriodicWave(
-    [ 0, 1 ],
-    [ 0, 0 ]
-  )
+  return ctx.createPeriodicWave(...GUESS_NO_FUND)
+}
+
+function test3 (ctx, phase = 0) {
+  return ctx.createPeriodicWave(...moreHum(...GUESS_NO_FUND, 20, 0.001, (n) => n*n))
+}
+
+function testA (ctx, phase = 0) {
+  return ctx.createPeriodicWave(...truncate(...A, 40))
 }
 
 const TONES = [
   phased,
-  test1,
-  test2,
+  testA,
 ]
 
 
@@ -94,8 +137,8 @@ export default class Voice {
       this.oscs.push(osc)
     }
 
-    this.mixer.connect(this.resonance)
-    this.resonance.connect(this.out)
+    this.mixer.connect(this.out)
+    //this.resonance.connect(this.out)
 
     // Connect the appropriate number of oscillators
     this.voices = 1 // DEFAULT_VOICES
