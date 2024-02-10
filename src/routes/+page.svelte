@@ -79,7 +79,7 @@
 
   {#if engine}
     <div class="flex col-span-full justify-between items-center mb-4">
-      <span class="text-lg xl:text-base nowrap font-bold text-slate-700"> Escape to stop </span>
+      <span class="text-lg xl:text-base nowrap font-bold text-slate-700"> Escape to toggle </span>
 
       <p class="text-3xl w-full text-center font-bold text-slate-400">{ engine.preset }</p>
 
