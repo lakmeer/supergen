@@ -79,14 +79,18 @@
 
   {#if engine}
     <div class="flex col-span-full justify-between items-center mb-4">
-      <span class="text-lg xl:text-base nowrap font-bold text-slate-700"> Escape to toggle </span>
+      <span class="text-lg xl:text-base nowrap font-bold text-slate-700">
+        Escape to 
+        { engine.running ? 'stop' : 'start' }
+      </span>
 
       <p class="text-3xl w-full text-center font-bold text-slate-400">{ engine.preset }</p>
 
       <span class="text-lg xl:text-base nowrap font-bold text-slate-500">
+        { engine.running ? 'Stop' : 'Start' }
         Engine
         <button type="button" class="button ml-4" on:click={() => engine = engine.toggle()}>
-          { engine.running ? '🟢' : '🔴' }
+          { engine.running ? '🔴' : '🟢' }
         </button>
       </span>
     </div>
