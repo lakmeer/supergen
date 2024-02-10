@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { round, pow, whichKey } from '$lib/utils'
+  import { onMount, tick } from 'svelte'
+  import { round, pow, whichKey, cos, sin, PI } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
   import * as PRESETS from '$lib/presets'
@@ -11,6 +11,8 @@
   import XyInput    from '../components/Xy.svelte'
   import FormantVis from '../components/FormantVis.svelte'
 
+  import FourierPlot from '../components/FourierPlot.svelte'
+
   import EngineVis     from '../components/EngineVis.svelte'
   import EngineSliders from '../components/EngineSliders.svelte'
 
@@ -19,11 +21,16 @@
 
   // Config
 
-  const TIME_FACTOR = 1
   let DISPLAY_MODE : 'sliders' | 'spectrum' = 'spectrum'
 
 
-  // Functions
+  // Update Loop
+
+  const TIME_FACTOR = 1
+
+  let time:number
+  let then:number
+  let rafref:number
 
   function poke () {
     const now = performance.now()
@@ -40,12 +47,7 @@
   // State
 
   let engine:Engine
-
-  let time:number
-  let then:number
-  let rafref:number
   let error:string
-
   let preset: (keyof typeof PRESETS) = 'VOICE_TEST'
 
 
@@ -61,7 +63,7 @@
     time = 0
     then = performance.now()
 
-    poke()
+    if (engine) poke()
 
     return () => {
       ctx.close()

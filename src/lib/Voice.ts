@@ -11,6 +11,9 @@ type WaveTable = {
   imag: number | Float32Array,
 }
 
+import LOAD_A from './wavetables/a.json'
+import LOAD_E from './wavetables/e.json'
+
 function phased (ctx, phase = 0) {
   let real = cos(phase)
   let imag = sin(phase)
@@ -75,8 +78,18 @@ function testA (ctx, phase = 0) {
   return ctx.createPeriodicWave(...truncate(...A, 40))
 }
 
+function loadA (ctx, phase = 0) {
+  return ctx.createPeriodicWave(...truncate(LOAD_A.real, LOAD_A.imag, 241))
+}
+
+function loadE (ctx, phase = 0) {
+  return ctx.createPeriodicWave(...truncate(LOAD_E.real, LOAD_E.imag, 241))
+}
+
 const TONES = [
   phased,
+  loadA,
+  loadE,
   testA,
 ]
 

@@ -37,3 +37,10 @@ export const whichKey = (key:KeyboardEvent['key'], handler:KeyHandler) => {
     if (event.key === key) handler(event)
   }
 }
+
+export async function loadAudio (ctx:AudioContext, filepath:string):Promise<AudioBuffer> {
+  const response    = await fetch(filepath);
+  const arrayBuffer = await response.arrayBuffer();
+  return await ctx.decodeAudioData(arrayBuffer);
+}
+
