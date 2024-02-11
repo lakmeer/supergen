@@ -32,7 +32,7 @@ import WAVE_DATA from '../data/vowels.wavedata?raw'
 
 const TONES = Object.fromEntries(
   WaveTable.loadLibrary(WAVE_DATA)
-    .map(wt => wt.truncate(50))
+    .map(wt => wt.truncate(40))
     .map(wt => [ wt.name, wt ]))
 
 
@@ -44,6 +44,8 @@ export default class Voice {
   mixer:      GainNode
   out:        GainNode
   level:      AudioParam
+
+  wander:     boolean   // Automatically drift around the vowel space
 
   #x:         number    // Vowel blend X coord
   #y:         number    // Vowel blend Y coord
@@ -65,6 +67,8 @@ export default class Voice {
     this.#x = 0
     this.#y = 0
     this.#wave = TONES.A
+
+    this.wander = true
 
     this.mixer = ctx.createGain()
     this.mixer.gain.value = 1.5
@@ -91,9 +95,8 @@ export default class Voice {
   }
 
   apply (config:VoxConfig) {
-    const { level, tone, spread, pres, oct, num } = config
+    const { level, tone, spread, oct, num } = config
     this.spread = spread
-    this.presence = pres
     this.octave = oct
     this.out.gain.value = level
     this.voices = num

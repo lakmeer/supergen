@@ -5,7 +5,7 @@
   import { lerp, unlerp, clamp } from '$lib/utils'
   import { touchable, newPointer } from '$lib/pointer'
 
-  export let x:number
+  export let x = 0
   export let y:number
   export let z = 0
 
