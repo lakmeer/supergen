@@ -7,6 +7,8 @@ import { browser } from '$app/environment'
 import { get, writable, derived, type Writable } from 'svelte/store'
 import { lerp, unlerp, clamp, hypot, atan2, snap, PI } from '$lib/utils'
 
+const NULL_POINTER = -1
+
 
 // Types
 
@@ -17,7 +19,7 @@ export type PointerXform = (state:PointerState) => any
 // Event Handlers
 
 function start (pointer:PointerStore, event:PointerEvent) {
-  if (get(pointer).id !== 0) return // Don't double-up
+  if (get(pointer).id !== NULL_POINTER) return // Don't double-up
 
   pointer.update(state => {
     state.event = 'down'
@@ -72,7 +74,7 @@ function move (pointer:PointerStore, event:PointerEvent) {
 function stop (pointer:PointerStore, event:PointerEvent) {
   if (get(pointer).id !== event.pointerId) return
   pointer.update(state => {
-    state.id = 0
+    state.id = NULL_POINTER
     state.event = 'up'
     state.active = false
     return state
@@ -94,7 +96,7 @@ export function newPointer (opts:Partial<PointerOptions> = {}):PointerStore {
   }
 
   let state:PointerState = {
-    id: 0,
+    id: NULL_POINTER,
     x:  0,
     y:  0,
     a:  0,
