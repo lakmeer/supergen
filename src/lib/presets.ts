@@ -78,7 +78,7 @@ export const MATT_SUPERGEN:Preset = {
 }
 
 export const VOICE_TEST:Preset = {
-  name: "Vocal Testing: Single Wavetable",
+  name: "Vocal Testing",
   freq: 50,
   rate: 2,
   stride: 1,
@@ -88,7 +88,7 @@ export const VOICE_TEST:Preset = {
   odds:  { f: 0.09, a: 0.0, q: 0.05 },
   vox: {
     level: 0.9,
-    tone: 1,
+    tone: 0,
     oct: 0,
     pres: 0.0,
     num: 10,

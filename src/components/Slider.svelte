@@ -22,28 +22,26 @@
     style:accent-color={color}
     bind:value {min} {max} {step} {disabled} />
 
-  {#if showValue}
-    <span class="block my-2">
-      {#if display === 'basic'}
-        <strong>{value.toFixed(2)}</strong>
-      {/if}
-      {#if display === 'hz'}
-        <strong>{value.toFixed(1)}Hz</strong>
-      {/if}
-      {#if display === 'percent'}
-        <strong>{(value/(max - min)*100).toFixed(0)}%</strong>
-      {/if}
-    </span>
-  {/if}
-
   {#if label}
     <span class="block">
       {label}
     </span>
   {/if}
 
-  <div class="!mt-4">
-    <slot />
+  <div class="block my-2">
+    <slot>
+      {#if showValue}
+        {#if display === 'basic'}
+          <strong>{value.toFixed(2)}</strong>
+        {/if}
+        {#if display === 'hz'}
+          <strong>{value.toFixed(1)}Hz</strong>
+        {/if}
+        {#if display === 'percent'}
+          <strong>{(value/(max - min)*100).toFixed(0)}%</strong>
+        {/if}
+      {/if}
+    </slot>
   </div>
 </div>
 

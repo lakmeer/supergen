@@ -1,97 +1,18 @@
 
 import { lerp, pow, rand, nrand, cos, sin, PI } from '$lib/utils'
+import WaveTable from '$lib/wavetable'
+import WAVE_DATA from '../data/vowels.wavedata?raw'
+
+const TONES = WaveTable.loadLibrary(WAVE_DATA).map(wt => wt.truncate(50))
 
 const MAX_OSCS = 32
 const MIN_Q    = 0.1
 const MAX_Q    = 5
 const DEFAULT_VOICES = 16
 
-type WaveTable = {
-  real: number | Float32Array,
-  imag: number | Float32Array,
+function wave (ctx, table) {
+  return { name: table.name, wave: ctx.createPeriodicWave(table.real, table.imag) } 
 }
-
-import LOAD_A from './wavetables/a.json'
-import LOAD_E from './wavetables/e.json'
-
-function phased (ctx, phase = 0) {
-  let real = cos(phase)
-  let imag = sin(phase)
-
-  return ctx.createPeriodicWave(
-    [ 0, 1,  0.5, 0.6,  0.0, 0.4, -0.5 ],
-    [ 0, 0, -0.5, 0.0, -0.4, 0.0,  0.0 ],
-  )
-}
-
-function moreHum (real:number[], imag:number[], length:number, amount:number, falloff = () => 1, ignoreImag = false) {
-  for (let i = 0; i < length; i++) {
-    real.push(amount * falloff(i/length))
-    imag.push(ignoreImag ? 0 : (amount * falloff(i/length)))
-  }
-  return [ real, imag ]
-}
-
-function truncate (real:number[], imag:number[], length:number) {
-  const len = real.length
-  return [ real.slice(0, len - length), imag.slice(0, len - length) ]
-}
-
-function add (realA:number[], imagA:number[], realB:number[], imagB:number[]) {
-  const len = Math.max(realA.length, realB.length)
-  for (let i = 0; i < len; i++) {
-    realA[i] += realB[i] || 0
-    imagA[i] += imagB[i] || 0
-  }
-  return [ realA, imagA ]
-}
-
-const GUESS = [
-  [ 0, 1, 0.372, 0.357, 0.266, 0.269, 0.093, 0.040, 0.083 ],
-  [ 0, 0, 0.495, 0.463, 0.350, 0.347, 0.121, 0.047, 0.106 ],
-]
-
-const GUESS_NO_FUND = [
-  [ 0, 0.372, 0.357, 0.266, 0.269, 0.093, 0.040, 0.083 ],
-  [ 0, 0.495, 0.463, 0.350, 0.347, 0.121, 0.047, 0.106 ],
-]
-
-const A = [
-  [ 0, 0.01, 0.915, 0.023, 0.023, 0.045, 0.015, 0.045, 0.03, 0.045, 0.025, 0.205, 0.095, 0.02, 0.03, 0.02, 0.02, 0.01, 0.015, 0.015, 0.01, 0.01, 0.0, 0.015, 0.01, 0.01, 0.015, 0.025, 0.03, 0.03, 0.015, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.0, 0.01, 0.0, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.015, 0.015, 0.01, 0.015, 0.01 ],
-  [ 0, 0.01, 0.015, 0.023, 0.023, 0.045, 0.015, 0.045, 0.03, 0.045, 0.025, 0.205, 0.095, 0.02, 0.03, 0.02, 0.02, 0.01, 0.015, 0.015, 0.01, 0.01, 0.0, 0.015, 0.01, 0.01, 0.015, 0.025, 0.03, 0.03, 0.015, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.0, 0.01, 0.0, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.015, 0.015, 0.01, 0.015, 0.01 ],
-]
-
-
-function test1 (ctx, phase = 0) {
-  return ctx.createPeriodicWave(...GUESS)
-}
-
-function test2 (ctx, phase = 0) {
-  return ctx.createPeriodicWave(...GUESS_NO_FUND)
-}
-
-function test3 (ctx, phase = 0) {
-  return ctx.createPeriodicWave(...moreHum(...GUESS_NO_FUND, 20, 0.001, (n) => n*n))
-}
-
-function testA (ctx, phase = 0) {
-  return ctx.createPeriodicWave(...truncate(...A, 40))
-}
-
-function loadA (ctx, phase = 0) {
-  return ctx.createPeriodicWave(...truncate(LOAD_A.real, LOAD_A.imag, 241))
-}
-
-function loadE (ctx, phase = 0) {
-  return ctx.createPeriodicWave(...truncate(LOAD_E.real, LOAD_E.imag, 241))
-}
-
-const TONES = [
-  phased,
-  loadA,
-  loadE,
-  testA,
-]
 
 
 //
@@ -122,6 +43,10 @@ export default class Voice {
 
   constructor (ctx:AudioContext) {
 
+    // Build tone library using audioContext
+    TONES.map(wt => wt.gen(ctx))
+
+    // Setup
     this.#freq     = 55
     this.#spread   = 0
     this.#voices   = 0
@@ -144,7 +69,7 @@ export default class Voice {
 
     for (let i = 0; i < MAX_OSCS; i++) {
       const osc = ctx.createOscillator()
-      osc.setPeriodicWave(this.#table(ctx, rand(PI)))
+      osc.setPeriodicWave(this.#table.wave)
       osc.detune.value = this.#spread * nrand(100)
       osc.start()
       this.oscs.push(osc)
@@ -170,12 +95,14 @@ export default class Voice {
 
   // Computed properties
 
+  get wave () { return this.#table.name }
+
   get tone () { return this.#toneIx }
   set tone (ix:number) {
+    if (!TONES[ix]) return
     this.#toneIx = ix
     this.#table = TONES[ix]
-    this.oscs.forEach((osc, i) =>
-      osc.setPeriodicWave(this.#table(osc.context, rand(PI))))
+    this.oscs.forEach((osc, i) => osc.setPeriodicWave(this.#table.wave))
   }
 
   get freq () { return this.#freq }
@@ -219,5 +146,5 @@ export default class Voice {
     this.#oct = o
     this.freq = this.freq
   }
-
 }
+

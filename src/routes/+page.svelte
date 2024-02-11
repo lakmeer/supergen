@@ -138,7 +138,9 @@
 
       <Slider label="Tone"  display="basic" showValue
         bind:value={engine.voice.tone}
-        min={0} max={10} step={1} class="accent-slate-300" />
+        min={0} max={8} step={1} class="accent-slate-300">
+        { engine.voice.wave[0].toUpperCase() }{ engine.voice.wave.slice(1) }
+      </Slider>
 
       <Slider label="Spread"  display="basic" showValue
         bind:value={engine.voice.spread}

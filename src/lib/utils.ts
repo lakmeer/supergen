@@ -38,9 +38,17 @@ export const whichKey = (key:KeyboardEvent['key'], handler:KeyHandler) => {
   }
 }
 
-export async function loadAudio (ctx:AudioContext, filepath:string):Promise<AudioBuffer> {
+export const loadAudio = async (ctx:AudioContext, filepath:string):Promise<AudioBuffer> => {
   const response    = await fetch(filepath);
   const arrayBuffer = await response.arrayBuffer();
   return await ctx.decodeAudioData(arrayBuffer);
 }
+
+export const f32_b64 = (values:number[]) =>
+	btoa(String.fromCharCode.apply(null, 
+    new Uint8Array(Float32Array.from(values).buffer)))
+
+export const b64_f32 = (str:string) =>
+  new Float32Array(new Uint8Array(
+    atob(str).split('').map(c => c.charCodeAt(0))).buffer)
 
