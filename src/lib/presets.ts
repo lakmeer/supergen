@@ -8,9 +8,9 @@ const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, ix) => {
   return f + 0.0573*(x*x*x) - 0.3228*(x*x) + 1.8576*x - 0.162
 }
 
-const DEFAULT_VOX:VoxConfig = { level: 0.2, tone: [ 0.5, 0.5 ], oct: -1, pres: 0.6, num: 16, spread: 2 }
-const NO_VOX:VoxConfig      = { level: 0.0, tone: [ 0.5, 0.5 ], oct:  0, pres: 0.6, num: 0,  spread: 0 }
-const DEEP_VOX:VoxConfig    = { level: 0.7, tone: [ 0.5, 0.5 ], oct: -2, pres: 0.9, num: 24, spread: 0.8 }
+const DEFAULT_VOX:VoxConfig = { level: 0.2, tone: [ 0.5, 0.5 ], wander: false, oct: -1, num: 16, spread: 2 }
+const NO_VOX:VoxConfig      = { level: 0.0, tone: [ 0.5, 0.5 ], wander: false, oct:  0, num: 0,  spread: 0 }
+const DEEP_VOX:VoxConfig    = { level: 0.7, tone: [ 0.5, 0.5 ], wander: false, oct: -2, num: 24, spread: 0.8 }
 
 
 //
@@ -28,9 +28,9 @@ export const NEW_SUPERGEN:Preset = {
   odds:  { f: 0.09, a: 0.36, q: 0.05 },
   vox: {
     level: 0.9,
-    tone: [ 0.5, 0.5 ],
+    tone: [ 0.25, 0.75 ],
     oct: 0,
-    pres: 0.0,
+    wander: false,
     num: 10,
     spread: 1.0
   }
@@ -90,8 +90,8 @@ export const VOICE_TEST:Preset = {
     level: 0.9,
     tone: [ 0, 1 ],
     oct: 0,
-    pres: 0.9,
     num: 10,
-    spread: 0.8
+    spread: 0.8,
+    wander: true
   }
 }

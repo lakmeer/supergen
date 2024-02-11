@@ -1,5 +1,5 @@
 
-import { round, lerp, pow, rand, nrand, cos, sin, PI } from '$lib/utils'
+import { round, pow, nrand, cos, sin, TAU } from '$lib/utils'
 
 import WaveTable from '$lib/wavetable'
 
@@ -24,6 +24,7 @@ const MAX_OSCS = 32
 const MIN_Q    = 0.1
 const MAX_Q    = 5
 const DEFAULT_VOICES = 16
+const WANDER_SPEED = 0.2
 
 
 // Load WaveTable data
@@ -46,6 +47,7 @@ export default class Voice {
   level:      AudioParam
 
   wander:     boolean   // Automatically drift around the vowel space
+  #phase:     number    // Current phase of the wander
 
   #x:         number    // Vowel blend X coord
   #y:         number    // Vowel blend Y coord
@@ -69,6 +71,7 @@ export default class Voice {
     this.#wave = TONES.A
 
     this.wander = true
+    this.#phase = TAU * 5/8   // Start in the 'A' zone (y is flipped)
 
     this.mixer = ctx.createGain()
     this.mixer.gain.value = 1.5
@@ -146,10 +149,10 @@ export default class Voice {
   }
 
   get x () { return this.#x }
-  set x (x: number) { this.#x = x; this.blendWave() }
+  set x (x: number) { this.#x = x; if (!this.wander) this.blendWave() }
 
   get y () { return this.#y }
-  set y (y: number) { this.#y = y; this.blendWave() }
+  set y (y: number) { this.#y = y; if (!this.wander) this.blendWave() }
 
   blendWave () {
     this.#wave = WaveTable.blend(
@@ -164,6 +167,15 @@ export default class Voice {
   setWave (wt:WaveTable) {
     const wave = this.oscs[0].context.createPeriodicWave(wt.real, wt.imag)
     this.oscs.forEach((osc, i) => osc.setPeriodicWave(wave))
+  }
+
+  update (Δt:number) {
+    if (this.wander) {
+      this.#phase += Δt * WANDER_SPEED
+      this.#x = 0.5 + 0.4 * cos(this.#phase * 3)
+      this.#y = 0.5 - 0.4 * sin(this.#phase * 1)
+      this.blendWave()
+    }
   }
 }
 

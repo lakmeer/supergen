@@ -155,6 +155,7 @@ export default class Engine {
   update (t: number, Δt: number):Engine {
     for (const sub of this.subs) { sub.update(Δt) }
     for (const osc of this.oscs) { osc.update(Δt) }
+    this.voice.update(Δt)
     return this // so that parent context can poke reactives
   }
 
