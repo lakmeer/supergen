@@ -61,16 +61,16 @@
 
 
 <div class="text-center max-w-32 select-none touch-none {$$restProps.class}">
-  <div class="w-full aspect-square rounded border border-slate-700"
+  <div class="w-full aspect-square rounded border border-slate-700 bg-slate-950/50"
     class:opacity-30={disabled}
     use:touchable={pointer}
     on:wheel|preventDefault={wheel}>
     <slot />
   </div>
-</div>
 
-{#if label}
-  <span class="mt-2 hidden xl:block">
-    {label}
-  </span>
-{/if}
+  {#if label}
+    <span class="mt-2 hidden xl:block">
+      {label}
+    </span>
+  {/if}
+</div>

@@ -23,11 +23,11 @@ declare global {
 
   type VoxConfig = {
     level:  number      // Overall volume
-    tone:   number      // Which wavetable
     num:    number      // Number of voices
     pres:   number      // Presence (filter resonance)
     spread: number      // Detune spread
     oct:    number      // Octave from 0 to -2
+    tone:   [ number, number ] // X/Y blend of wavetables
   }
 
   type Preset = {

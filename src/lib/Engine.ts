@@ -3,7 +3,7 @@ import { abs, pow, norm, PI } from '$lib/utils'
 
 import Osc      from '$lib/Osc'
 import Voice    from '$lib/Voice'
-import SuperOsc from '$lib/Super'
+//import SuperOsc from '$lib/Super'
 
 const PLUS_ONE:StrideCurve   = (w, f, ix) => f + ix * w
 const LOW_OCTAVE:StrideCurve = (w, f, ix) => f/pow(2, abs(ix))
@@ -35,7 +35,7 @@ export default class Engine {
   oscs: Osc[]               // Tone oscillators
   voice: Voice              // Chant oscillator
 
-  super: SuperOsc           // Multi-voice detuned oscillator
+  //super: SuperOsc           // Multi-voice detuned oscillator
 
   params: {
     subs:  EqDist           // Suboscillator distribution
@@ -247,22 +247,18 @@ export default class Engine {
     return this.ctx.state !== 'suspended'
   }
 
-  set running (mode?:boolean) {
-    if (mode) { // switch on
-      console.log('resume')
-      if (this.running) return
-      console.log('resume')
-      this.ctx.resume()
-    } else { // switch off
-      console.log('stop')
-      if (!this.running) return
-      console.log('stop')
-      this.ctx.suspend()
-    }
+  start () {
+    if (this.running) return console.warn('Engine::start - already running')
+    this.ctx.resume()
+  }
+
+  stop () {
+    if (!this.running) return console.warn('Engine::stop - already stopped')
+    this.ctx.suspend()
   }
 
   toggle () {
-    this.running = !this.running
+    if (this.running) { this.stop() } else { this.start() }
     return this // for svelte reactive poke
   }
 

@@ -11,6 +11,8 @@
   export let x:number
   export let y:number
 
+  export let labels = ['A', 'I', 'O', 'U']
+
 
   // Functions
 
@@ -27,13 +29,13 @@
     ctx.textBaseline = 'middle'
 
     ctx.globalAlpha = lerp(0.3, 1, (1 - x) * y)
-    ctx.fillText('A', w * 1/4, h * 1/4)
+    ctx.fillText(labels[0], w * 1/4, h * 1/4)
     ctx.globalAlpha = lerp(0.3, 1, x * y)
-    ctx.fillText('I', w * 3/4, h * 1/4)
+    ctx.fillText(labels[1], w * 3/4, h * 1/4)
     ctx.globalAlpha = lerp(0.3, 1, (1 - x) * (1 - y))
-    ctx.fillText('E', w * 1/4, h * 3/4)
+    ctx.fillText(labels[2], w * 1/4, h * 3/4)
     ctx.globalAlpha = lerp(0.3, 1, x * (1 - y))
-    ctx.fillText('O', w * 3/4, h * 3/4)
+    ctx.fillText(labels[3], w * 3/4, h * 3/4)
 
     // Crosshair
     ctx.globalAlpha = 0.5

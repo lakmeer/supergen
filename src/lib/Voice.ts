@@ -1,18 +1,7 @@
 
 import { lerp, pow, rand, nrand, cos, sin, PI } from '$lib/utils'
+
 import WaveTable from '$lib/wavetable'
-import WAVE_DATA from '../data/vowels.wavedata?raw'
-
-const TONES = WaveTable.loadLibrary(WAVE_DATA).map(wt => wt.truncate(50))
-
-const MAX_OSCS = 32
-const MIN_Q    = 0.1
-const MAX_Q    = 5
-const DEFAULT_VOICES = 16
-
-function wave (ctx, table) {
-  return { name: table.name, wave: ctx.createPeriodicWave(table.real, table.imag) } 
-}
 
 
 //
@@ -20,21 +9,47 @@ function wave (ctx, table) {
 //
 // A chorus of almost-in-tune wavetable oscillators.
 // TODO:
-//  - Wavetables for different vowels?
-//  - Wavetable blending/marching
 //  - Bring back formant filtering, maybe
 //  - Tension/etc params from SIM-THROAT, pending response from author
 //
+// Vowel space:
+//   A --- I
+//   |     |
+//   O --- U
+
+
+// Config
+
+const MAX_OSCS = 32
+const MIN_Q    = 0.1
+const MAX_Q    = 5
+const DEFAULT_VOICES = 16
+
+
+// Load WaveTable data
+
+import WAVE_DATA from '../data/vowels.wavedata?raw'
+
+const TONES = Object.fromEntries(
+  WaveTable.loadLibrary(WAVE_DATA)
+    .map(wt => wt.truncate(50))
+    .map(wt => [ wt.name, wt ]))
+
+
+
+// Main Class
 
 export default class Voice {
 
   oscs:       OscillatorNode[]
   mixer:      GainNode
-  resonance:  BiquadFilterNode
   out:        GainNode
+  resonance:  BiquadFilterNode
 
-  #toneIx:    number    // Index of the current wavetable
-  #table:     Function  // Current wavetable generator
+  #x:         number    // Vowel blend X coord
+  #y:         number    // Vowel blend Y coord
+  #wave:      WaveTable // Blended vowel table
+
   #freq:      number    // Base frequency
   #voices:    number    // Number of oscillators active
   #spread:    number    // Detune spread
@@ -43,17 +58,16 @@ export default class Voice {
 
   constructor (ctx:AudioContext) {
 
-    // Build tone library using audioContext
-    TONES.map(wt => wt.gen(ctx))
-
     // Setup
     this.#freq     = 55
     this.#spread   = 0
     this.#voices   = 0
     this.#presence = 0.8
     this.#oct      = -1
-    this.#toneIx   = 0
-    this.#table    = TONES[this.#toneIx]
+
+    this.#x = 0
+    this.#y = 0
+    this.#wave = TONES.A
 
     this.mixer = ctx.createGain()
     this.mixer.gain.value = 1.5
@@ -69,14 +83,15 @@ export default class Voice {
 
     for (let i = 0; i < MAX_OSCS; i++) {
       const osc = ctx.createOscillator()
-      osc.setPeriodicWave(this.#table.wave)
       osc.detune.value = this.#spread * nrand(100)
       osc.start()
       this.oscs.push(osc)
     }
 
-    this.mixer.connect(this.out)
-    //this.resonance.connect(this.out)
+    this.mixer.connect(this.resonance)
+    this.resonance.connect(this.out)
+
+    this.setWave(this.#wave)
 
     // Connect the appropriate number of oscillators
     this.voices = 1 // DEFAULT_VOICES
@@ -85,25 +100,17 @@ export default class Voice {
   apply (config:VoxConfig) {
     const { level, tone, spread, pres, oct, num } = config
     this.spread = spread
-    this.tone = tone
     this.presence = pres
     this.octave = oct
     this.out.gain.value = level
     this.voices = num
+    this.#x = tone[0]
+    this.#y = tone[1]
+    this.blendWave()
   }
 
 
   // Computed properties
-
-  get wave () { return this.#table.name }
-
-  get tone () { return this.#toneIx }
-  set tone (ix:number) {
-    if (!TONES[ix]) return
-    this.#toneIx = ix
-    this.#table = TONES[ix]
-    this.oscs.forEach((osc, i) => osc.setPeriodicWave(this.#table.wave))
-  }
 
   get freq () { return this.#freq }
   set freq (f:number) {
@@ -145,6 +152,27 @@ export default class Voice {
   set octave (o:number) {
     this.#oct = o
     this.freq = this.freq
+  }
+
+  get x () { return this.#x }
+  set x (x: number) { this.#x = x; this.blendWave() }
+
+  get y () { return this.#y }
+  set y (y: number) { this.#y = y; this.blendWave() }
+
+  blendWave () {
+    this.#wave = WaveTable.blend(
+      WaveTable.blend(TONES.O, TONES.U, this.#x),
+      WaveTable.blend(TONES.A, TONES.I, this.#x),
+      this.#y
+    )
+
+    this.setWave(this.#wave)
+  }
+
+  setWave (wt:WaveTable) {
+    const wave = this.oscs[0].context.createPeriodicWave(wt.real, wt.imag)
+    this.oscs.forEach((osc, i) => osc.setPeriodicWave(wave))
   }
 }
 

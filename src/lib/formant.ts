@@ -1,8 +1,12 @@
 
 import { lerp } from '$lib/utils'
 
-const lerpFormant = (formantA, formantB, t) =>
-  formantA.map((a, i) => a.map((_a, j) => lerp(_a, formantB[i][j], t)))
+type Peak = [number, number, number]
+
+const lerpFormant = (formantA:Peak[], formantB:Peak[], t:number) =>
+  formantA.map((a, i) =>
+    a.map((_a, j) =>
+      lerp(_a, formantB[i][j], t))) as Peak[]
 
 const FORMANT_BASS = {
   A: [
@@ -40,7 +44,7 @@ const FORMANT_BASS = {
     [ 2675, -28 / 20, 1000 / 120 ],
     [ 2950, -36 / 20, 1000 / 120 ]
   ]
-}
+} as Record<string, Peak[]>
 
 
 //
@@ -59,10 +63,10 @@ export default class Formant {
 
   #x: number
   #y: number
-  #gain: AudioParam
 
   in:       GainNode
   out:      GainNode
+  gain:     AudioParam
   filters:  BiquadFilterNode[]
 
   constructor (ctx:AudioContext) {

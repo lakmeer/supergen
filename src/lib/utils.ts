@@ -44,11 +44,10 @@ export const loadAudio = async (ctx:AudioContext, filepath:string):Promise<Audio
   return await ctx.decodeAudioData(arrayBuffer);
 }
 
-export const f32_b64 = (values:number[]) =>
-	btoa(String.fromCharCode.apply(null, 
-    new Uint8Array(Float32Array.from(values).buffer)))
+export const f32_b64 = (f32:Float32Array):string =>
+	btoa(String.fromCharCode.apply(null, Array.from( new Uint8Array(f32.buffer))))
 
-export const b64_f32 = (str:string) =>
+export const b64_f32 = (str:string):Float32Array =>
   new Float32Array(new Uint8Array(
     atob(str).split('').map(c => c.charCodeAt(0))).buffer)
 
