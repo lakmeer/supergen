@@ -3,6 +3,8 @@
   import { round, pow, whichKey, cos, sin, PI } from '$lib/utils'
   import { fromTw } from '$lib/tw-utils'
 
+  import { page } from '$app/stores'
+
   import * as PRESETS from '$lib/presets'
 
   import Panel      from '../components/Panel.svelte'
@@ -49,7 +51,11 @@
 
   let engine:Engine
   let error:string
-  let preset: (keyof typeof PRESETS) = 'VOICE_TEST'
+  let preset: (keyof typeof PRESETS) = 'NEW_SUPERGEN'
+
+  if ($page.url.hash.length > 0) {
+    preset = $page.url.hash.slice(1) as (keyof typeof PRESETS)
+  }
 
 
   // Init

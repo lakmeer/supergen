@@ -23,7 +23,6 @@ declare global {
 
   type VoxConfig = {
     level:  number      // Overall volume
-    num:    number      // Number of voices
     wander: boolean     // Wander the vowel space
     spread: number      // Detune spread
     oct:    number      // Octave from 0 to -2

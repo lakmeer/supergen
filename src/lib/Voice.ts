@@ -98,11 +98,11 @@ export default class Voice {
   }
 
   apply (config:VoxConfig) {
-    const { level, tone, spread, oct, num } = config
+    const { level, tone, spread, oct, wander } = config
     this.spread = spread
     this.octave = oct
     this.out.gain.value = level
-    this.voices = num
+    this.wander = wander
     this.#x = tone[0]
     this.#y = tone[1]
     this.blendWave()
