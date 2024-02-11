@@ -15,8 +15,8 @@
 </script>
 
 
-<div class="text-center w-14 space-y-2 {$$restProps.class}">
-  <input class="block mx-auto"
+<div class="text-center text-xs xl:text-base w-14 space-y-2 {$$restProps.class}">
+  <input class="block mx-auto max-h-24 xl:max-h-auto"
     orient="vertical"
     type="range"
     style:accent-color={color}
@@ -51,6 +51,5 @@
     writing-mode: bt-lr;
     appearance: slider-vertical;
     width: 1rem;
-    max-height: 8rem;
   }
 </style>

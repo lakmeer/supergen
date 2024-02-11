@@ -1,5 +1,5 @@
 
-import { lerp, pow, rand, nrand, cos, sin, PI } from '$lib/utils'
+import { round, lerp, pow, rand, nrand, cos, sin, PI } from '$lib/utils'
 
 import WaveTable from '$lib/wavetable'
 
@@ -36,7 +36,6 @@ const TONES = Object.fromEntries(
     .map(wt => [ wt.name, wt ]))
 
 
-
 // Main Class
 
 export default class Voice {
@@ -44,7 +43,7 @@ export default class Voice {
   oscs:       OscillatorNode[]
   mixer:      GainNode
   out:        GainNode
-  resonance:  BiquadFilterNode
+  level:      AudioParam
 
   #x:         number    // Vowel blend X coord
   #y:         number    // Vowel blend Y coord
@@ -53,7 +52,6 @@ export default class Voice {
   #freq:      number    // Base frequency
   #voices:    number    // Number of oscillators active
   #spread:    number    // Detune spread
-  #presence:  number    // Presence of the formants
   #oct:       number    // Octave shift
 
   constructor (ctx:AudioContext) {
@@ -62,7 +60,6 @@ export default class Voice {
     this.#freq     = 55
     this.#spread   = 0
     this.#voices   = 0
-    this.#presence = 0.8
     this.#oct      = -1
 
     this.#x = 0
@@ -72,12 +69,10 @@ export default class Voice {
     this.mixer = ctx.createGain()
     this.mixer.gain.value = 1.5
 
-    this.resonance = ctx.createBiquadFilter()
-    this.resonance.type = 'bandpass'
-    this.resonance.Q.value = lerp(MIN_Q, MAX_Q, 1 - this.#presence)
-
     this.out = ctx.createGain()
     this.out.gain.value = 0.5
+
+    this.level = this.out.gain
 
     this.oscs = []
 
@@ -88,13 +83,11 @@ export default class Voice {
       this.oscs.push(osc)
     }
 
-    this.mixer.connect(this.resonance)
-    this.resonance.connect(this.out)
-
     this.setWave(this.#wave)
 
-    // Connect the appropriate number of oscillators
-    this.voices = 1 // DEFAULT_VOICES
+    this.voices = DEFAULT_VOICES
+
+    this.mixer.connect(this.out)
   }
 
   apply (config:VoxConfig) {
@@ -116,7 +109,6 @@ export default class Voice {
   set freq (f:number) {
     const freq = f * pow(2, this.#oct)
     this.#freq = f
-    this.resonance.frequency.value = freq * 2
     this.oscs.forEach((osc, i) => osc.frequency.value = freq)
   }
 
@@ -126,14 +118,10 @@ export default class Voice {
     this.oscs.forEach((osc, i) => osc.detune.value = s * nrand(100))
   }
 
-  get presence () { return this.#presence }
-  set presence (p:number) { 
-    this.#presence = p
-    this.resonance.Q.value = lerp(MIN_Q, MAX_Q, 1 - p)
-  }
-
   get voices () { return this.#voices }
   set voices (s:number) {
+    s = round(s)
+
     if (s > this.#voices) {
       for (let i = this.#voices; i < s; i++) {
         this.oscs[i].connect(this.mixer)

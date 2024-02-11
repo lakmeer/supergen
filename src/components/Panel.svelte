@@ -6,13 +6,13 @@
 </script>
 
 
-<div class="rounded xl:p-4 xl:pb-2 xl:border border-slate-600 {$$restProps.class}">
+<div class="rounded xl:p-3 xl:pb-2 xl:border border-slate-600 {$$restProps.class}">
   {#if label}
-    <p class="text-xl xl:text-2xl mb-2 xl:mb-4 w-full text-center font-bold {color}">{ label }</p>
+    <p class="text-lg xl:text-2xl mb-2 xl:mb-4 w-full text-center font-bold {color}">{ label }</p>
   {/if}
 
   {#if horz}
-    <div class="flex space-x-4 w-full justify-center">
+    <div class="flex space-x-1 xl:space-x-4 w-full justify-center">
       <slot />
     </div>
   {:else if vert}

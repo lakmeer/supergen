@@ -13,6 +13,8 @@
 
   export let labels = ['A', 'I', 'O', 'U']
 
+  export let color = fromTw('slate-200')
+
 
   // Functions
 
@@ -24,17 +26,17 @@
 
     // Labels
     ctx.font = `bold ${w/3}px sans-serif`
-    ctx.fillStyle = fromTw('slate-200')
+    ctx.fillStyle = color
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
-    ctx.globalAlpha = lerp(0.3, 1, (1 - x) * y)
+    ctx.globalAlpha = lerp(0.2, 1, (1 - x) * y)
     ctx.fillText(labels[0], w * 1/4, h * 1/4)
-    ctx.globalAlpha = lerp(0.3, 1, x * y)
+    ctx.globalAlpha = lerp(0.2, 1, x * y)
     ctx.fillText(labels[1], w * 3/4, h * 1/4)
-    ctx.globalAlpha = lerp(0.3, 1, (1 - x) * (1 - y))
+    ctx.globalAlpha = lerp(0.2, 1, (1 - x) * (1 - y))
     ctx.fillText(labels[2], w * 1/4, h * 3/4)
-    ctx.globalAlpha = lerp(0.3, 1, x * (1 - y))
+    ctx.globalAlpha = lerp(0.2, 1, x * (1 - y))
     ctx.fillText(labels[3], w * 3/4, h * 3/4)
 
     // Crosshair

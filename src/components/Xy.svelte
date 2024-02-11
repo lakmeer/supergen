@@ -3,7 +3,7 @@
 
   import { onMount } from 'svelte'
   import { lerp, unlerp, clamp } from '$lib/utils'
-  import { touchable, newPointer, toLinearX } from '$lib/pointer'
+  import { touchable, newPointer } from '$lib/pointer'
 
   export let x:number
   export let y:number
