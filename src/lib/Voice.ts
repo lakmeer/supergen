@@ -42,6 +42,8 @@ const TONES = Object.fromEntries(
 export default class Voice {
 
   oscs:       OscillatorNode[]
+  left:       StereoPannerNode
+  right:      StereoPannerNode
   mixer:      GainNode
   out:        GainNode
   level:      AudioParam
@@ -73,8 +75,14 @@ export default class Voice {
     this.wander = true
     this.#phase = TAU * 5/8   // Start in the 'A' zone (y is flipped)
 
+    this.left = ctx.createStereoPanner()
+    this.left.pan.value = -1.0
+
+    this.right = ctx.createStereoPanner()
+    this.right.pan.value = 1.0
+
     this.mixer = ctx.createGain()
-    this.mixer.gain.value = 1.5
+    this.mixer.gain.value = 1
 
     this.out = ctx.createGain()
     this.out.gain.value = 0.5
@@ -87,13 +95,15 @@ export default class Voice {
       const osc = ctx.createOscillator()
       osc.detune.value = this.#spread * nrand(100)
       osc.start()
+      osc.panner = i % 2 ? this.left : this.right
       this.oscs.push(osc)
     }
 
     this.setWave(this.#wave)
-
     this.voices = DEFAULT_VOICES
 
+    this.left.connect(this.mixer)
+    this.right.connect(this.mixer)
     this.mixer.connect(this.out)
   }
 
@@ -130,7 +140,7 @@ export default class Voice {
 
     if (s > this.#voices) {
       for (let i = this.#voices; i < s; i++) {
-        this.oscs[i].connect(this.mixer)
+        this.oscs[i].connect(this.oscs[i].panner)
       }
     } else if (s < this.#voices) {
       for (let i = s; i < this.#voices; i++) {
