@@ -157,7 +157,7 @@ export default class Voice {
     const { level, tone, spread, oct, wander } = config
     this.spread = spread
     this.octave = oct
-    this.out.gain.value = level
+    this.preamp.gain.value = level
     this.wander = wander
     this.#x = tone[0]
     this.#y = tone[1]

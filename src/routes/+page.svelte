@@ -136,7 +136,7 @@
 
     <!-- Voice Panel -->
 
-    <Panel horz label="Voice" color="text-purple-500" class="col-span-4">
+    <Panel horz label="Voice" color="text-purple-500" class="col-span-5 xl:col-span-4">
       <div class="flex space-x-3">
         <div class="flex-1">
           <XyInput label="Presence"
@@ -175,7 +175,7 @@
 
     <!-- Master Panel -->
 
-    <Panel horz label="Master" color="text-slate-300" class="col-span-1 xl:col-span-4">
+    <Panel horz label="Master" color="text-slate-300" class="col-span-6 xl:col-span-4">
       <Slider label="Level"   display="percent" showValue bind:value={engine.level}  min={0}   max={1}   step={0.01} class="accent-slate-400" />
       <Slider label="Freq"    display="hz"      showValue bind:value={engine.freq}   min={30}  max={320} step={0.1}  class="accent-slate-300" />
       <Slider label="Stride"  display="basic"   showValue bind:value={engine.stride} min={0.0} max={3}   step={0.01} class="accent-slate-300" />
