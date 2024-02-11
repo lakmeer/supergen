@@ -8,9 +8,9 @@ const DEFAULT_STRIDE_CURVE:StrideCurve = (w, f, ix) => {
   return f + 0.0573*(x*x*x) - 0.3228*(x*x) + 1.8576*x - 0.162
 }
 
-const DEFAULT_VOX:VoxConfig = { level: 0.2, tone: [ 0.5, 0.5 ], wander: false, oct: -1, spread: 2 }
-const NO_VOX:VoxConfig      = { level: 0.0, tone: [ 0.5, 0.5 ], wander: false, oct:  0, spread: 0 }
-const DEEP_VOX:VoxConfig    = { level: 0.7, tone: [ 0.5, 0.5 ], wander: false, oct: -2, spread: 0.8 }
+const DEFAULT_VOX:VoxConfig = { level: 0.2, reverb: 0.5, tone: [ 0.5, 0.5 ], wander: false, oct: -1, spread: 2 }
+const NO_VOX:VoxConfig      = { level: 0.0, reverb: 0.0, tone: [ 0.5, 0.5 ], wander: false, oct:  0, spread: 0 }
+const DEEP_VOX:VoxConfig    = { level: 0.7, reverb: 0.9, tone: [ 0.5, 0.5 ], wander: false, oct: -2, spread: 0.8 }
 
 
 //
@@ -18,7 +18,7 @@ const DEEP_VOX:VoxConfig    = { level: 0.7, tone: [ 0.5, 0.5 ], wander: false, o
 //
 
 export const NEW_SUPERGEN:Preset = {
-  name: "Nangineering 0.5",
+  name: "Nangineering 0.51",
   freq: C_SHARP[3],
   rate: 2,
   stride: 1,
@@ -31,7 +31,8 @@ export const NEW_SUPERGEN:Preset = {
     tone: [ 0.4, 0.75 ],
     oct: -1,
     wander: false,
-    spread: 0.75
+    spread: 0.75,
+    reverb: 0.7,
   }
 }
 
@@ -78,7 +79,7 @@ export const MATT_SUPERGEN:Preset = {
 
 export const VOICE_TEST:Preset = {
   name: "Vocal Testing",
-  freq: 50,
+  freq: 100,
   rate: 2,
   stride: 1,
   curve: DEFAULT_STRIDE_CURVE,
@@ -90,6 +91,7 @@ export const VOICE_TEST:Preset = {
     tone: [ 0, 1 ],
     oct: 0,
     spread: 0.8,
-    wander: true
+    wander: true,
+    reverb: 0.8
   }
 }

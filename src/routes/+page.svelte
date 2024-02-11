@@ -138,35 +138,37 @@
 
     <Panel horz label="Voice" color="text-purple-500" class="col-span-4">
       <div class="flex space-x-3">
-      <div class="flex-1">
-        <XyInput label="Presence"
-          bind:y={engine.voice.level.value} minY={0}   maxY={1}
-          bind:z={engine.voice.spread}      minZ={0.1} maxZ={2}>
+        <div class="flex-1">
+          <XyInput label="Presence"
+            bind:y={engine.voice.level.value} minY={0}   maxY={1}
+            bind:z={engine.voice.spread}      minZ={0.1} maxZ={2}>
 
-          <EqVis dist={{ f: 0.5, a: engine.voice.level.value, q: engine.voice.spread / 4}} 
-            color={fromTw('purple-500')} class="w-full aspect-square" />
-        </XyInput>
+            <EqVis dist={{ f: 0.5, a: engine.voice.level.value, q: engine.voice.spread / 4}} 
+              color={fromTw('purple-500')} class="w-full aspect-square" />
+          </XyInput>
 
-        <p class="mt-1 xl:hidden text-center text-sm text-slate-400">
-          Presence
-        </p>
+          <p class="mt-1 xl:hidden text-center text-sm text-slate-400">
+            Presence
+          </p>
 
-        <div class="flex flex-col text-sm hidden xl:block text-center text-slate-400 mt-1">
-          <p>Level: { (engine.voice.level.value * 100).toFixed(0) }%</p>
-          <p>Spread: { engine.voice.spread.toFixed(2) }</p>
+          <div class="flex flex-col text-sm hidden xl:block text-center text-slate-400 mt-1">
+            <p>Level: { (engine.voice.level.value * 100).toFixed(0) }%</p>
+            <p>Spread: { engine.voice.spread.toFixed(2) }</p>
+          </div>
         </div>
-      </div>
 
-      <div class="flex-1">
-        <XyInput label="Tone" bind:x={engine.voice.x} bind:y={engine.voice.y}>
-          <FormantVis color={fromTw('purple-500')} bind:x={engine.voice.x} bind:y={engine.voice.y} />
-        </XyInput>
+        <div class="flex-1">
+          <XyInput label="Tone" on:pointerdown={() => engine.voice.wander = false} bind:x={engine.voice.x} bind:y={engine.voice.y}>
+            <FormantVis color={fromTw('purple-500')} bind:x={engine.voice.x} bind:y={engine.voice.y} />
+          </XyInput>
 
-        <div class="flex items-center text-sm justify-center space-x-1 xl:space-x-2 text-slate-400 accent-purple-500 mt-1">
-          <label for="voice-wander">Wander</label>
-          <input id="voice-wander" type="checkbox" bind:checked={engine.voice.wander} />
+          <div class="flex items-center text-sm justify-center space-x-1 xl:space-x-2 text-slate-400 accent-purple-500 mt-1">
+            <label for="voice-wander">Wander</label>
+            <input id="voice-wander" type="checkbox" bind:checked={engine.voice.wander} />
+          </div>
         </div>
-      </div>
+
+        <Slider label="Reverb" display="basic" color={fromTw('purple-400')} showValue bind:value={engine.voice.reverb} min={0.0} max={1} step={0.01} />
       </div>
     </Panel>
 

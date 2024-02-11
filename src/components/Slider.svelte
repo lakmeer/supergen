@@ -16,7 +16,7 @@
 
 
 <div class="text-center text-xs xl:text-base w-14 space-y-2 {$$restProps.class}">
-  <input class="block mx-auto max-h-24 xl:max-h-auto"
+  <input class="block mx-auto h-24 xl:h-32"
     orient="vertical"
     type="range"
     style:accent-color={color}

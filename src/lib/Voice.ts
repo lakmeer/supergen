@@ -36,6 +36,11 @@ const TONES = Object.fromEntries(
     .map(wt => wt.truncate(40))
     .map(wt => [ wt.name, wt ]))
 
+const REVERB_IR_SRC = '/ir-2x.wav?raw'
+const REVERB_LIMIT = 0.1 // compensates for convolution gain
+const DELAY_TIME = 0.4
+const DELAY_FEEDBACK = 0.4
+
 
 // Main Class
 
@@ -47,6 +52,9 @@ export default class Voice {
   mixer:      GainNode
   out:        GainNode
   level:      AudioParam
+
+  convoler:   ConvolverNode
+  #reverb:    number    // Wet/dry blend
 
   wander:     boolean   // Automatically drift around the vowel space
   #phase:     number    // Current phase of the wander
@@ -75,6 +83,11 @@ export default class Voice {
     this.wander = true
     this.#phase = TAU * 5/8   // Start in the 'A' zone (y is flipped)
 
+    this.#reverb = 0.8
+
+
+    // Create nodes
+
     this.left = ctx.createStereoPanner()
     this.left.pan.value = -1.0
 
@@ -82,12 +95,27 @@ export default class Voice {
     this.right.pan.value = 1.0
 
     this.mixer = ctx.createGain()
-    this.mixer.gain.value = 1
+    this.dry   = ctx.createGain()
+    this.wet   = ctx.createGain()
+
+    this.convolver = ctx.createConvolver()
+    this.convolver.buffer = ctx.createBuffer(2, ctx.sampleRate * 2, ctx.sampleRate)
+    this.convolver.normalize = false
+
+    this.delay = ctx.createDelay(2)
+    this.delay.delayTime.value = DELAY_TIME
+
+    this.feedback = ctx.createGain()
+    this.feedback.gain.value = DELAY_FEEDBACK * this.#reverb
+
+    this.preamp = ctx.createGain()
+    this.level = this.preamp.gain
 
     this.out = ctx.createGain()
     this.out.gain.value = 0.5
 
-    this.level = this.out.gain
+
+    // Generate Oscillators
 
     this.oscs = []
 
@@ -95,16 +123,34 @@ export default class Voice {
       const osc = ctx.createOscillator()
       osc.detune.value = this.#spread * nrand(100)
       osc.start()
-      osc.panner = i % 2 ? this.left : this.right
+      osc.panner = i % 2 ? this.left : this.right // save for later
       this.oscs.push(osc)
     }
 
+    // Set up wavetables
     this.setWave(this.#wave)
     this.voices = DEFAULT_VOICES
 
+    // Wiring
     this.left.connect(this.mixer)
     this.right.connect(this.mixer)
-    this.mixer.connect(this.out)
+    this.mixer.connect(this.preamp)
+    this.preamp.connect(this.wet)
+    this.preamp.connect(this.dry)
+    this.dry.connect(this.out)
+    this.wet.connect(this.convolver)
+    this.wet.connect(this.delay)
+    this.delay.connect(this.out)
+    this.delay.connect(this.feedback)
+    this.feedback.connect(this.delay)
+
+    // Load reverb IR
+    fetch(REVERB_IR_SRC)
+      .then(response => response.arrayBuffer())
+      .then(buffer => ctx.decodeAudioData(buffer))
+      .then(data => this.convolver.buffer = data)
+
+    this.reverb = this.#reverb
   }
 
   apply (config:VoxConfig) {
@@ -163,6 +209,14 @@ export default class Voice {
 
   get y () { return this.#y }
   set y (y: number) { this.#y = y; if (!this.wander) this.blendWave() }
+
+  get reverb () { return this.#reverb }
+  set reverb (r:number) {
+    this.#reverb = r
+    this.dry.gain.value = 0.8 - r/3
+    this.wet.gain.value = r * REVERB_LIMIT
+    this.feedback.gain.value = DELAY_FEEDBACK * r
+  }
 
   blendWave () {
     this.#wave = WaveTable.blend(

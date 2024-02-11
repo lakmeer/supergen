@@ -60,7 +60,7 @@
 </script>
 
 
-<div class="text-center max-w-32 select-none touch-none {$$restProps.class}">
+<div on:pointerdown class="text-center max-w-32 select-none touch-none {$$restProps.class}">
   <div class="w-full aspect-square rounded border border-slate-700 bg-slate-950/50"
     class:opacity-30={disabled}
     use:touchable={pointer}
