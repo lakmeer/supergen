@@ -1,5 +1,5 @@
 
-import { round, pow, nrand, cos, sin, TAU } from '$lib/utils'
+import { lerp, round, pow, nrand, cos, sin, sigmoid, TAU } from '$lib/utils'
 
 import WaveTable from '$lib/wavetable'
 
@@ -49,19 +49,26 @@ export default class Voice {
   oscs:       OscillatorNode[]
   left:       StereoPannerNode
   right:      StereoPannerNode
-  mixer:      GainNode
-  out:        GainNode
+  mixer:      GainNode  // Collects panned oscillators
+  fade:       GainNode  // Ramps to zero when blending with NONE tone
+  preamp:     GainNode  // External level control
+  out:        GainNode  // Destination
   level:      AudioParam
 
-  convoler:   ConvolverNode
+  convolver:  ConvolverNode
+  delay:      DelayNode
+  feedback:   GainNode  // Looped into delay node
+  wet:        GainNode
+  dry:        GainNode
   #reverb:    number    // Wet/dry blend
-
-  wander:     boolean   // Automatically drift around the vowel space
-  #phase:     number    // Current phase of the wander
 
   #x:         number    // Vowel blend X coord
   #y:         number    // Vowel blend Y coord
   #wave:      WaveTable // Blended vowel table
+  #knee:      number    // How sharply to blend between tones
+
+  wander:     boolean   // Automatically drift around the vowel space
+  #phase:     number    // Current phase of the wander
 
   #freq:      number    // Base frequency
   #voices:    number    // Number of oscillators active
@@ -82,6 +89,7 @@ export default class Voice {
 
     this.wander = true
     this.#phase = TAU * 5/8   // Start in the 'A' zone (y is flipped)
+    this.#knee  = 1.5
 
     this.#reverb = 0.8
 
@@ -95,6 +103,7 @@ export default class Voice {
     this.right.pan.value = 1.0
 
     this.mixer = ctx.createGain()
+    this.fade  = ctx.createGain()
     this.dry   = ctx.createGain()
     this.wet   = ctx.createGain()
 
@@ -123,7 +132,8 @@ export default class Voice {
       const osc = ctx.createOscillator()
       osc.detune.value = this.#spread * nrand(100)
       osc.start()
-      osc.panner = i % 2 ? this.left : this.right // save for later
+      //@ts-ignore -- we need somewhere to save this for later
+      osc.panner = i % 2 ? this.left : this.right
       this.oscs.push(osc)
     }
 
@@ -134,7 +144,8 @@ export default class Voice {
     // Wiring
     this.left.connect(this.mixer)
     this.right.connect(this.mixer)
-    this.mixer.connect(this.preamp)
+    this.mixer.connect(this.fade)
+    this.fade.connect(this.preamp)
     this.preamp.connect(this.wet)
     this.preamp.connect(this.dry)
     this.dry.connect(this.out)
@@ -154,9 +165,10 @@ export default class Voice {
   }
 
   apply (config:VoxConfig) {
-    const { level, tone, spread, oct, wander } = config
+    const { level, tone, spread, oct, wander, reverb } = config
     this.spread = spread
     this.octave = oct
+    this.reverb = reverb
     this.preamp.gain.value = level
     this.wander = wander
     this.#x = tone[0]
@@ -186,6 +198,7 @@ export default class Voice {
 
     if (s > this.#voices) {
       for (let i = this.#voices; i < s; i++) {
+        //@ts-ignore -- no such panner on OscillatorNode
         this.oscs[i].connect(this.oscs[i].panner)
       }
     } else if (s < this.#voices) {
@@ -218,12 +231,19 @@ export default class Voice {
     this.feedback.gain.value = DELAY_FEEDBACK * r
   }
 
+  get wave () { return this.#wave }
+
   blendWave () {
+    const sx = sigmoid(this.#x, this.#knee)
+    const sy = sigmoid(this.#y, this.#knee)
+
     this.#wave = WaveTable.blend(
-      WaveTable.blend(TONES.O, TONES.U, this.#x),
-      WaveTable.blend(TONES.A, TONES.I, this.#x),
-      this.#y
-    )
+      WaveTable.blend(TONES.NONE, TONES.M, sx),
+      WaveTable.blend(TONES.A,    TONES.O, sx),
+      sy)
+
+    // Manually hack the fade to zero, since Oscillator auto-normalises wavetables
+    this.fade.gain.linearRampToValueAtTime(lerp(sx, 1, sy), this.oscs[0].context.currentTime + 0.1)
 
     this.setWave(this.#wave)
   }
@@ -236,8 +256,8 @@ export default class Voice {
   update (Δt:number) {
     if (this.wander) {
       this.#phase += Δt * WANDER_SPEED
-      this.#x = 0.5 + 0.4 * cos(this.#phase * 3)
-      this.#y = 0.5 - 0.4 * sin(this.#phase * 1)
+      this.#x = 0.5 + 0.4 * cos(this.#phase)
+      this.#y = 0.5 - 0.4 * sin(this.#phase)
       this.blendWave()
     }
   }

@@ -13,6 +13,7 @@
   import XyInput    from '../components/Xy.svelte'
   import FormantVis from '../components/FormantVis.svelte'
   import EqVis      from '../components/EqVis.svelte'
+  import ToneVis    from '../components/ToneVis.svelte'
 
   import FourierPlot from '../components/FourierPlot.svelte'
 
@@ -159,7 +160,10 @@
 
         <div class="flex-1">
           <XyInput label="Tone" on:pointerdown={() => engine.voice.wander = false} bind:x={engine.voice.x} bind:y={engine.voice.y}>
-            <FormantVis color={fromTw('purple-500')} bind:x={engine.voice.x} bind:y={engine.voice.y} />
+            <FormantVis color={fromTw('purple-500')}
+              labels={[ 'A', 'U', ' ', 'M' ]}
+              bind:x={engine.voice.x}
+              bind:y={engine.voice.y} />
           </XyInput>
 
           <div class="flex items-center text-sm justify-center space-x-1 xl:space-x-2 text-slate-400 accent-purple-500 mt-1">
@@ -167,8 +171,6 @@
             <input id="voice-wander" type="checkbox" bind:checked={engine.voice.wander} />
           </div>
         </div>
-
-        <Slider label="Reverb" display="basic" color={fromTw('purple-400')} showValue bind:value={engine.voice.reverb} min={0.0} max={1} step={0.01} />
       </div>
     </Panel>
 

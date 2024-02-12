@@ -25,6 +25,7 @@ declare global {
     level:  number      // Overall volume
     wander: boolean     // Wander the vowel space
     spread: number      // Detune spread
+    reverb: number      // Reverb/delay wet/dry ratio
     oct:    number      // Octave from 0 to -2
     tone:   [ number, number ] // X/Y blend of wavetables
   }
