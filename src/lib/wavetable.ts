@@ -10,11 +10,13 @@ export default class WaveTable {
   name:string
   real:Float32Array
   imag:Float32Array
+  gain:number
 
-  constructor (name:string, real:number[]|Float32Array, imag:number[]|Float32Array) {
+  constructor (name:string, gain:number, real:number[]|Float32Array, imag:number[]|Float32Array) {
     if (real.length !== imag.length) throw new Error('Real and Imaginary parts must be the same length')
 
     this.name = name
+    this.gain = gain
     this.real = Array.isArray(real) ? new Float32Array(real) : real
     this.imag = Array.isArray(imag) ? new Float32Array(imag) : imag
   }
@@ -31,7 +33,7 @@ export default class WaveTable {
   }
 
   truncate (length:number):WaveTable {
-    return new WaveTable(this.name,
+    return new WaveTable(this.name, this.gain,
       this.real.slice(0, length),
       this.imag.slice(0, length))
   }
@@ -45,7 +47,7 @@ export default class WaveTable {
       imag[i] = (a.imag[i] ?? 0) + (b.imag[i] ?? 0)
     }
 
-    return new WaveTable(a.name + '+' + b.name, real, imag)
+    return new WaveTable(a.name + '+' + b.name, (a.gain + b.gain)/2, real, imag)
   }
 
 
@@ -60,7 +62,7 @@ export default class WaveTable {
       imag[i] = lerp(a.imag[i] ?? 0, b.imag[i] ?? 0, amount)
     }
 
-    return new WaveTable(a.name + '+' + b.name, real, imag)
+    return new WaveTable(a.name + '+' + b.name, lerp(a.gain, b.gain, amount), real, imag)
   }
 
 
@@ -69,17 +71,19 @@ export default class WaveTable {
   encode ():string {
     const name = this.name.padEnd(15, ' ')
     const len  = this.length.toString().padEnd(7, ' ')
+    const gain = (this.gain * 100).toFixed(0).padEnd(6, ' ')
     const data = new Float32Array(this.length * 2)
     data.set(this.real, 0)
     data.set(this.imag, this.length)
-    return [ name, len, f32_b64(data), '\n' ].join(' ')
+    return [ name, gain, len, f32_b64(data), '\n' ].join(' ')
   }
 
   static decode (line:string):WaveTable {
-    const [ name, length, data ] = line.split(' ').map(x => x.trim()).filter(x => x)
+    const [ name, level, length, data ] = line.split(' ').map(x => x.trim()).filter(x => x)
     const len = parseInt(length)
+    const gain = parseInt(level)/100
     const values = b64_f32(data)
-    return new WaveTable(name, values.slice(0, len), values.slice(len))
+    return new WaveTable(name, gain, values.slice(0, len), values.slice(len))
   }
 
   static loadLibrary (data:string):WaveTable[] {

@@ -121,7 +121,7 @@ export default class Voice {
     this.level = this.preamp.gain
 
     this.out = ctx.createGain()
-    this.out.gain.value = 0.5
+    this.out.gain.value = 1
 
 
     // Generate Oscillators
@@ -242,14 +242,12 @@ export default class Voice {
       WaveTable.blend(TONES.A,    TONES.O, sx),
       sy)
 
-    // Manually hack the fade to zero, since Oscillator auto-normalises wavetables
-    this.fade.gain.linearRampToValueAtTime(lerp(sx, 1, sy), this.oscs[0].context.currentTime + 0.1)
-
     this.setWave(this.#wave)
   }
 
   setWave (wt:WaveTable) {
     const wave = this.oscs[0].context.createPeriodicWave(wt.real, wt.imag)
+    this.fade.gain.linearRampToValueAtTime(wt.gain, this.oscs[0].context.currentTime + 0.01)
     this.oscs.forEach((osc, i) => osc.setPeriodicWave(wave))
   }
 
