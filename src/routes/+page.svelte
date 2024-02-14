@@ -59,6 +59,16 @@
   }
 
 
+  import WaveTable from '$lib/wavetable'
+
+  let wt = new WaveTable('CHANZ', 1,
+    [ 0,  0.002,  0.01,  0.025,  0.028,  0.1,  0.018,  0.02,  0.06,  0.025,  0.01,  0.01,  0,  0.002,  0.014,  0.009 ],
+    [ 0,  0,      0,     0,      0,      0,    0,      0,     0,     0,      0,     0,     0,  0,      0,      0,    ]
+  )
+
+  console.log(wt.encode())
+
+
   // Init
 
   onMount(() => {

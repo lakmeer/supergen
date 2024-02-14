@@ -95,3 +95,22 @@ export const VOICE_TEST:Preset = {
     reverb: 0.8
   }
 }
+
+export const WAVETABLES:Preset = {
+  name: "Wavetable Auditions",
+  freq: 100,
+  rate: 2,
+  stride: 1,
+  curve: DEFAULT_STRIDE_CURVE,
+  subs:  { f: 0.90, a: 0.0, q: 0.65 },
+  evens: { f: 0.00, a: 0.0, q: 0.32 },
+  odds:  { f: 0.09, a: 0.0, q: 0.05 },
+  vox: {
+    level: 0.9,
+    tone: [ 1, 1 ],
+    oct: 0,
+    spread: 0.8,
+    wander: false,
+    reverb: 1.0
+  }
+}
