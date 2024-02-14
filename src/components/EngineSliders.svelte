@@ -65,7 +65,6 @@
     const numSubs = engine.subs.length
     const total = engine.total - 1
 
-    normalCurve(engine.params.subs,  BLUE,  [0, numSubs - 1], w, h)
     normalCurve(engine.params.evens, GREEN, [numSubs, total], w, h)
     normalCurve(engine.params.odds,  RED,   [numSubs, total], w, h)
   }

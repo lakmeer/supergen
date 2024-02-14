@@ -1,5 +1,5 @@
 
-import { abs, pow, norm, PI } from '$lib/utils'
+import { abs, pow, norm, lerp, PI } from '$lib/utils'
 
 import Osc      from '$lib/Osc'
 import Voice    from '$lib/Voice'
@@ -38,7 +38,6 @@ export default class Engine {
   //super: SuperOsc           // Multi-voice detuned oscillator
 
   params: {
-    subs:  EqDist           // Suboscillator distribution
     evens: EqDist           // Oscillator bank A distribution
     odds:  EqDist           // Oscillator bank B distribution
   }
@@ -62,7 +61,6 @@ export default class Engine {
     this.curve   = PLUS_ONE
 
     this.params = {
-      subs:  { f: 0, a: 0, q: 0 },
       evens: { f: 0, a: 0, q: 0 },
       odds:  { f: 0, a: 0, q: 0 },
     }
@@ -79,15 +77,11 @@ export default class Engine {
     this.voice = new Voice(ctx)
     this.voice.freq = this.#freq / 4
 
-    //this.super = new SuperOsc(ctx)
-    //this.super.freq = this.#freq
-
     // Connect oscillator banks
     this.subs.forEach(sub => sub.out.connect(this.out))
     this.oscs.forEach(osc => osc.out.connect(this.out))
 
     this.voice.out.connect(this.out)
-    //this.super.out.connect(this.out)
 
     this.preset = 'none'
 
@@ -173,7 +167,7 @@ export default class Engine {
   }
 
   apply (preset:Preset) {
-    const { name, freq, rate, curve, stride, subs, evens, odds, vox } = preset
+    const { name, freq, rate, curve, stride, evens, odds, vox } = preset
 
     console.log('Engine::apply - applying parametric preset:', name, preset)
 
@@ -184,13 +178,13 @@ export default class Engine {
     this.stride = stride
     this.curve  = curve
 
-    this.applyCurve(curve, subs, evens, odds)
+    this.applyCurve(curve, evens, odds)
     this.voice.apply(vox)
 
     console.log('Engine::apply - 🟢 done.')
   }
 
-  applyCurve (curve:StrideCurve, subs:EqDist, evens:EqDist, odds:EqDist) {
+  applyCurve (curve:StrideCurve, evens:EqDist, odds:EqDist) {
     const distTrap = (dist:EqDist, fn:(dist:EqDist) => void) => {
       const callback = fn.bind(this)
 
@@ -204,7 +198,6 @@ export default class Engine {
     }
 
     // Proxy eq distribution objects to watch updates
-    this.params.subs  = distTrap(subs,  this.updateSubs)
     this.params.evens = distTrap(evens, this.updateEvens)
     this.params.odds  = distTrap(odds,  this.updateOdds)
 
@@ -213,21 +206,23 @@ export default class Engine {
     for (const ix in this.oscs) this.setOsc(+ix, curve)
 
     // Set levels
-    this.updateSubs(subs)
+    this.oscs[0].level = 1
+    this.updateSubs()
     this.updateEvens(evens)
     this.updateOdds(odds)
   }
 
-  updateSubs (dist:EqDist) {
+  updateSubs () {
     for (const ix in this.subs) {
-      const p = +ix / (this.subs.length - 1)
-      this.subs[+ix].level = norm(p, dist)
+      const p = +ix / (this.subs.length)
+      console.log(p)
+      this.subs[+ix].level = lerp(0.5, 1, p)
     }
   }
 
   updateEvens (dist:EqDist) {
     for (const ix in this.oscs) {
-      if (+ix % 2 === 1) continue
+      if (+ix % 2 === 1 || +ix < 2) continue
       const p = +ix / (this.oscs.length - 1)
       this.oscs[+ix].level = norm(p, dist)
     }

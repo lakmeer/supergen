@@ -120,7 +120,6 @@
     ctx.lineWidth = CANVAS_DPI
 
     ctx.font = '2vw sans-serif'
-    ctx.textAlign = 'center'
 
     ctx.clearRect(0, 0, w, h)
 
@@ -133,13 +132,21 @@
     let oscRange:Range = [ MAX_FREQ, 0 ]
 
     // Suboscillators
-    for (let sub of engine.subs) {
+    for (let ix in engine.subs) {
+      const sub = engine.subs[ix]
+      const p = +ix/engine.subs.length
       ctx.fillStyle = BLUE
       const x = logScale(sub.freq) * w
       const y = lerp(h, 0, sub.level)
       subRange[0] = min(subRange[0], sub.freq)
       subRange[1] = max(subRange[1], sub.freq)
-      ctx.fillRect(x - bar/2, y, bar, h - y)
+      ctx.fillRect(x - bar, y, bar*2, h - y)
+
+      // Fade to white
+      ctx.fillStyle = WHITE
+      ctx.globalAlpha = p
+      ctx.fillRect(x - bar, y, bar*2, h - y)
+      ctx.globalAlpha = 1
     }
 
     // Tone oscillators
@@ -151,11 +158,10 @@
       oscRange[1] = max(oscRange[1], osc.freq)
       ctx.fillStyle = +ix === 0 ? WHITE : +ix % 2 ? RED : GREEN
       ctx.fillRect(x - bar/2, y, bar, h - y)
-      if (ix === '0') ctx.fillText(hz(osc.freq), x, y - 10)
+      if (ix === '0') ctx.fillText(hz(osc.freq), x + 15, y + 100)
     }
 
     // Curves
-    logNormalCurve(engine.params.subs,  BLUE,  subRange, w, h)
     logNormalCurve(engine.params.evens, GREEN, oscRange, w, h)
     logNormalCurve(engine.params.odds,  RED,   oscRange, w, h)
 
