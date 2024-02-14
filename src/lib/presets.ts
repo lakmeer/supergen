@@ -18,6 +18,7 @@ const DEEP_VOX:VoxConfig    = { level: 0.7, reverb: 0.9, tone: [ 0.5, 0.5 ], wan
 //
 
 export const NEW_SUPERGEN:Preset = {
+  type: 'EVEN_ODD',
   name: "Nangineering 0.51",
   freq: C_SHARP[3],
   rate: 2,
@@ -42,6 +43,7 @@ export const NEW_SUPERGEN:Preset = {
 //
 
 export const TEST_MAXXED:Preset = {
+  type: 'EVEN_ODD',
   name: "Maxxed Test",
   freq: C_SHARP[4],
   rate: 2,
@@ -54,6 +56,7 @@ export const TEST_MAXXED:Preset = {
 }
 
 export const STRIDE_TEST:Preset = {
+  type: 'EVEN_ODD',
   name: "Stride Test",
   freq: C_SHARP[1],
   rate: 2,
@@ -66,6 +69,7 @@ export const STRIDE_TEST:Preset = {
 }
 
 export const MATT_SUPERGEN:Preset = {
+  type: 'EVEN_ODD',
   name: "Matt's Supergen",
   freq: C_SHARP[3],
   rate: 2,
@@ -78,6 +82,7 @@ export const MATT_SUPERGEN:Preset = {
 }
 
 export const VOICE_TEST:Preset = {
+  type: 'EVEN_ODD',
   name: "Vocal Testing",
   freq: 100,
   rate: 2,
@@ -97,6 +102,7 @@ export const VOICE_TEST:Preset = {
 }
 
 export const WAVETABLES:Preset = {
+  type: 'EVEN_ODD',
   name: "Wavetable Auditions",
   freq: 100,
   rate: 2,
@@ -112,5 +118,23 @@ export const WAVETABLES:Preset = {
     spread: 0.8,
     wander: false,
     reverb: 1.0
+  }
+}
+
+export const TRAVELLING_PAIR:Preset = {
+  type: 'TRAV_PAIR',
+  name: "Travelling Pair",
+  freq: C_SHARP[3],
+  rate: 2,
+  stride: 1,
+  curve: DEFAULT_STRIDE_CURVE,
+  pair:  { f: 0.49, a: 0.9, q: 0.05 },
+  vox: {
+    level: 0.2,
+    tone: [ 0.25, 0.75 ],
+    oct: -1,
+    wander: false,
+    spread: 0.75,
+    reverb: 0.9,
   }
 }

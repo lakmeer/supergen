@@ -15,6 +15,8 @@ declare global {
 
   type StrideCurve = (width:number, freq:number, ix:number) => number
 
+  type PresetType = 'EVEN_ODD' | 'TRAV_PAIR' | 'MANUAL'
+
   type EqDist = {
     f: number
     a: number
@@ -31,15 +33,17 @@ declare global {
   }
 
   type Preset = {
+    type:   PresetType
     name:   string      // Preset name
     freq:   number      // Base frequency
     rate:   number      // Panning rate
     curve:  StrideCurve // Stride curve (relative harmonics)
     stride: number      // Stride width
     vox:    VoxConfig   // Voice drone config
-    subs:   EqDist      // Sub oscillator EQ
-    evens:  EqDist      // Tone EQ bank A
-    odds:   EqDist      // Tone EQ bank B
+    pair?:   EqDist      // Travelling pair eq
+    subs?:   EqDist      // Sub oscillator EQ
+    evens?:  EqDist      // Tone EQ bank A
+    odds?:   EqDist      // Tone EQ bank B
   }
 
 

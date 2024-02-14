@@ -3,7 +3,6 @@ import { abs, pow, norm, lerp, PI } from '$lib/utils'
 
 import Osc      from '$lib/Osc'
 import Voice    from '$lib/Voice'
-//import SuperOsc from '$lib/Super'
 
 const PLUS_ONE:StrideCurve   = (w, f, ix) => f + ix * w
 const LOW_OCTAVE:StrideCurve = (w, f, ix) => f/pow(2, abs(ix))
@@ -35,9 +34,8 @@ export default class Engine {
   oscs: Osc[]               // Tone oscillators
   voice: Voice              // Chant oscillator
 
-  //super: SuperOsc           // Multi-voice detuned oscillator
-
   params: {
+    pair:  EqDist           // Travelling Pair
     evens: EqDist           // Oscillator bank A distribution
     odds:  EqDist           // Oscillator bank B distribution
   }
@@ -162,11 +160,61 @@ export default class Engine {
 
   static fromPreset (ctx:AudioContext, level:number, preset:Preset) {
     const engine = new Engine(ctx, level)
-    engine.apply(preset)
-    return engine
+
+    switch (preset.type) {
+      case 'EVEN_ODD':
+        engine.applyEvenOdd(preset)
+        return engine
+
+      case 'TRAV_PAIR':
+        engine.applyTravellingPair(preset)
+        return engine
+
+      default:
+        console.warn("Unsupported preset type:", preset.type)
+        return engine
+    }
   }
 
-  apply (preset:Preset) {
+  applyTravellingPair (preset:Preset) {
+    const { name, freq, rate, stride, curve, pair, vox } = preset
+
+    console.log('Engine::apply - applying parametric preset:', name, preset)
+
+    this.preset = name
+
+    this.freq   = freq
+    this.rate   = rate
+    this.stride = stride
+    this.curve  = curve
+
+    this.voice.apply(vox)
+
+    const distTrap = (dist:EqDist, fn:(dist:EqDist) => void) => {
+      const callback = fn.bind(this)
+
+      return new Proxy(structuredClone(dist), {
+        set (target:EqDist, prop:keyof EqDist, value:number):boolean {
+          target[prop] = value
+          callback(target)
+          return true
+        }
+      })
+    }
+
+    this.params.pair = distTrap(pair, this.updatePair)
+
+    // Set stride frequencies
+    for (const ix in this.subs) this.setSub(+ix)
+    for (const ix in this.oscs) this.setOsc(+ix, curve)
+
+    // Set levels
+    this.oscs[0].level = 1
+    //this.updateSubs()
+    this.updatePair(pair)
+  }
+
+  applyEvenOdd (preset:Preset) {
     const { name, freq, rate, curve, stride, evens, odds, vox } = preset
 
     console.log('Engine::apply - applying parametric preset:', name, preset)
@@ -231,6 +279,14 @@ export default class Engine {
   updateOdds (dist:EqDist) {
     for (const ix in this.oscs) {
       if (+ix % 2 === 0) continue
+      const p = +ix / (this.oscs.length - 1)
+      this.oscs[+ix].level = norm(p, dist)
+    }
+  }
+
+  updatePair (dist:EqDist) {
+    for (const ix in this.oscs) {
+      if (+ix < 2) continue
       const p = +ix / (this.oscs.length - 1)
       this.oscs[+ix].level = norm(p, dist)
     }

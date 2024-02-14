@@ -52,7 +52,7 @@
 
   let engine:Engine
   let error:string
-  let preset: (keyof typeof PRESETS) = 'NEW_SUPERGEN'
+  let preset: (keyof typeof PRESETS) = 'TRAVELLING_PAIR'
 
   if ($page.url.hash.length > 0) {
     preset = $page.url.hash.slice(1) as (keyof typeof PRESETS)
@@ -122,6 +122,11 @@
 
     <!-- Parametric Controls -->
 
+    <Panel vert label="Pair" color="text-yellow-500" class="col-span-2">
+      <EqInput bind:value={engine.params.pair} color={fromTw('yellow-500')} />
+    </Panel>
+    <!--
+
     <Panel vert label="Evens" color="text-green-500" class="col-span-2">
       <EqInput bind:value={engine.params.evens} color={fromTw('green-500')} />
     </Panel>
@@ -129,7 +134,7 @@
     <Panel vert label="Odds" color="text-red-400" class="col-span-2">
       <EqInput bind:value={engine.params.odds} color={fromTw('red-400')} />
     </Panel>
-
+    -->
 
     <!-- Voice Panel -->
 

@@ -13,11 +13,12 @@
   const MIN_FREQ = 30/2/2/2 // Lowest 3rd sub-octave of 30Hz
   const MAX_FREQ = 2100     // Highest pitch at max base and stride
 
-  const RED   = fromTw('red-500')
-  const GREEN = fromTw('green-500')
-  const BLUE  = fromTw('blue-500')
-  const SLATE = fromTw('slate-700')
-  const WHITE = fromTw('white')
+  const RED    = fromTw('red-500')
+  const YELLOW = fromTw('yellow-500')
+  const GREEN  = fromTw('green-500')
+  const BLUE   = fromTw('blue-500')
+  const SLATE  = fromTw('slate-700')
+  const WHITE  = fromTw('white')
 
   let MODE : 'log' | 'linear' = 'log'
 
@@ -157,13 +158,16 @@
       oscRange[0] = min(oscRange[0], osc.freq)
       oscRange[1] = max(oscRange[1], osc.freq)
       ctx.fillStyle = +ix === 0 ? WHITE : +ix % 2 ? RED : GREEN
+      if (engine.params.pair) ctx.fillStyle = YELLOW
+      if (+ix === 0) ctx.fillStyle = WHITE
       ctx.fillRect(x - bar/2, y, bar, h - y)
       if (ix === '0') ctx.fillText(hz(osc.freq), x + 15, y + 100)
     }
 
     // Curves
-    logNormalCurve(engine.params.evens, GREEN, oscRange, w, h)
-    logNormalCurve(engine.params.odds,  RED,   oscRange, w, h)
+    //logNormalCurve(engine.params.pair,  YELLOW, oscRange, w, h)
+    logNormalCurve(engine.params.evens, GREEN,  oscRange, w, h)
+    logNormalCurve(engine.params.odds,  RED,    oscRange, w, h)
 
     // Limits
     ctx.globalAlpha = 0.4
